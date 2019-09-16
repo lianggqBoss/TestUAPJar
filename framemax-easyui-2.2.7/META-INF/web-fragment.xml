@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-fragment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:webfragment="http://java.sun.com/xml/ns/javaee/web-fragment_3_0.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-fragment_3_0.xsd" id="WebFragment_ID" version="3.0">
+  <display-name>framemax-easyui</display-name>
+  <name>framemax_easyui</name>
+  <error-page>
+  	<error-code>404</error-code>
+  	<location>/frame/pages/404.html</location>
+  </error-page>
+  <error-page>
+  	<error-code>403</error-code>
+  	<location>/frame/pages/403.html</location>
+  </error-page>
+</web-fragment>

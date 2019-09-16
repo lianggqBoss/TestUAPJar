@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>工号</label>
+		    		<input id="empNumber" name="empNumber" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>姓名</label>
+		    	    <input id="empName" name="empName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>性别</label>
+		    		<input id="empSex" name="empSex" class="easyui-combobox" codetype="SEX"/>
+	    		</li>
+		    	<li>
+		    		<label>入职日期</label>
+		    		<input id="empStartDateFrom" name="empStartDate" class="easyui-datebox" dataType="Date" operator="dateBegin"/>
+	    		</li>
+		    	<li>
+		    		<label>至</label>
+		    		<input id="empStartDateEnd" name="empStartDate" class="easyui-datebox" dataType="Date" operator="dateEnd" validType="TimeCheck"/>
+	    		</li>
+		    </ul>
+			
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="empInfoControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchPers()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newPers()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editPers()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deletePers()">删除</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbPers"  class="easyui-datagrid"	data-options="maskit:'empInfoControl',
+					query:'EmpInfoQuery',paramForm:'conditionForm',fitColumns:false">
+					<thead>
+						<tr>
+							<th data-options="field:'empNumber',width:120">工号</th>
+							<th data-options="field:'empName',width:120">姓名</th>
+							<th data-options="field:'empEnName',width:120">英文名称</th>
+							<th data-options="field:'empSex',width:80" codetype="SEX">性别</th>
+							<th data-options="field:'empTel',width:120">联系电话</th>
+							<th data-options="field:'empAddress',width:160">联系地址</th>
+							<th data-options="field:'empMail',width:120">邮箱</th>
+							<th data-options="field:'empPhone',width:120">手机号</th>
+							<th data-options="field:'empWechatNumber',width:120">微信号</th>
+							<th data-options="field:'empFax',width:120">传真号</th>
+							<th data-options="field:'empStartDate',width:120,formatter:'date',format:'YYYY-MM-DD'">入职日期</th>							
+							<th data-options="field:'empLeaveDate',width:120">离职日期</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgPers" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+		<form id="fmPers" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>工号</label></td>
+					<td><input name="empId" type="hidden" />
+					<input name=sysVersion type="hidden" />
+					<input id="eEmpNumber" name="empNumber" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入工号'" /></td>
+					<td><label>姓名</label></td>
+					<td><input name="empName" class="easyui-textbox" maxlength="100" data-options="required:true,missingMessage:'请输入姓名'" /></td>
+				</tr>
+				<tr>
+					<td><label>英文名称</label></td>
+					<td><input name="empEnName" class="easyui-textbox"  maxlength="256"/></td>
+					<td><label>性别</label></td>
+					<td><input name="empSex" class="easyui-combobox" codetype="SEX" style="width:152px;" emptyItemEnable="false" value='M'/></td>
+				</tr>
+				<tr>
+					<td><label>入职日期</label></td>
+					<td><input name="empStartDate" class="easyui-datebox" maxlength="50" style="width:152px;" /></td>
+					<td><label>离职日期</label></td>
+					<td><input name="empLeaveDate" class="easyui-datebox" style="width:152px;" /></td>
+				</tr>
+				<tr>
+					<td><label>联系电话</label></td>
+					<td><input name="empTel" class="easyui-textbox" maxlength="50" data-options="validType:'number'"/></td>
+					<td><label>联系地址</label></td>
+					<td><input name="empAddress" class="easyui-textbox" maxlength="200" /></td>
+				</tr>
+				<tr>
+					<td><label>邮箱</label></td>
+					<td><input name="empMail" class="easyui-textbox" maxlength="256" data-options="validType:'email'" /></td>
+					<td><label>手机号</label></td>
+					<td><input name="empPhone" class="easyui-textbox" maxlength="50" data-options="validType:'number'"/></td>
+				</tr>
+				<tr>
+					<td><label>微信号</label></td>
+					<td><input name="empWechatNumber" class="easyui-textbox" maxlength="50" /></td>
+					<td><label>传真号</label></td>
+					<td><input name="empFax" class="easyui-textbox" maxlength="50" data-options="validType:'number'" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="savePers()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgPers').dialog('close')">取消</a>
+	</div>
+	<script>
+	 $.extend($.fn.textbox.defaults.rules, {
+         number: {// 验证身份证
+             validator: function (value) {
+                 return /^[^a-zA-Z\u4e00-\u9fa5]+$/i.test(value);
+             },
+             message: '号码格式不正确'
+         },
+         TimeCheck:{
+        	 validator: function (value) {
+                 return $("#empStartDateFrom").datebox('getValue')<=value;
+             },
+             message: '结束日期必须大于开始日期'
+         }
+	 })
+	function searchPers(){
+		$("#tbPers").datagrid('reload');
+	}
+
+	function newPers(){
+		$('#dlgPers').dialog('open').dialog('setTitle','新增人员信息');
+		$('#eEmpNumber').textbox('textbox').attr('readonly',false);
+		$("#fmPers").form('reset');
+	}
+
+	function editPers(){
+		var row = $('#tbPers').datagrid('getSelected');
+		if (row){
+			$('#dlgPers').dialog('open').dialog('setTitle','修改用户信息');
+			$('#eEmpNumber').textbox('textbox').attr('readonly',true);
+			$('#fmPers').form('load',row);
+		}else{
+			$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+		}
+	}
+	function deletePers(){
+		var row = $('#tbPers').datagrid('getSelected');
+		if(row==null){
+			$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+		}else{
+			$.messager.confirm('删除人员', '确定删除选中的人员信息？', function(retn){
+				if (retn){
+					$('#empInfoControl').maskit();
+					$.post($url('/rest/fmxEmpInfoRest/deleteById.json'), {
+						empId : row.empId
+      				}, function(result) {
+      					$('#empInfoControl').maskit('unmask');
+     						if (result.code == 0) {
+     			  				$.messager.show({title:'提示信息',msg:'人员信息删除成功！',timeout:5000,showType:'slide'});
+     							searchPers();
+      					} else {
+      						var msg = result.message || '操作失败！';
+      						$.messager.alert("错误信息", msg,'error');
+      					}
+      				}, 'json');
+				}
+			});
+		}
+	}
+	function savePers(){
+		var url = $url('/rest/fmxEmpInfoRest/save.json');
+		$('#fmPers').form('submit', {
+	  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+	  		url : url,
+	  		onSubmit : function() {
+	  			return $(this).form('enableValidation').form('validate');
+	  		},
+	  		success : function(result) {
+	  			var data=JSON.parse(result);
+	  			if(data.code>=0){
+	  				$.messager.show({title:'提示信息',msg:'人员信息保存成功！',timeout:5000,showType:'slide'});
+	                $("#dlgPers").dialog("close");
+	                searchPers();
+	        	}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+	        	}
+	  		}
+		});
+	}
+	</script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>公告管理</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">	
+	<script type="text/javascript" src="../../../pageContext.js?deps=fineuploader"></script>
+	<style type="text/css">
+		.qq-uploader{
+			min-height: 120px;
+			max-height: 150px;
+			overflow: auto;
+		}
+	</style>
+</head>
+<body class="easyui-layout" fit="true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>发布时间从</label>
+		    		<input id="eCreatedTime" name="createdTime" class="easyui-datebox" dataType="date" operator=">="/>
+	    		</li>
+		    	<li>
+		    		<label>到</label>
+		    		<input name="createdTime" class="easyui-datebox" operator="<=" dataType="date" data-options="validType:['dateRange(\'#eCreatedTime\')']" />
+	    		</li>
+	    		<li>
+	    			<label>状态</label>
+	    			<span>
+	    				<select name="messageStatus" class="easyui-combobox" data-options="emptyItemEnable:false">
+	    					<option value=""> </option>
+							<option value="0">待生效</option>
+							<option value="1" >生效</option>
+							<option value="3">失效</option>
+						</select>
+	    			</span>
+	    		</li>
+		    	<li>
+		    	    <label>公告标题</label>
+		    	    <input name="messageSubject" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>		    
+		    	<li>
+		    	    <label>发布人</label>
+		    	    <input name="creator" class="easyui-combogrid" operator="=" codetype="UserAccount"/>
+		    	</li>
+		    </ul>
+		</form>
+	</div>
+	<div region="center" border="false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="messageBtnList" data-options="region:'north',border:false" height="auto">
+				<!-- 默认按钮default,回车默认触发 -->
+				<a href="#" class="easyui-linkbutton" onclick="$('#tbMessage').datagrid('reload');" default="default">查询</a>
+				<!-- 快捷键ctrl+n -->
+				<a href="#" class="easyui-linkbutton" onclick="newMessage()" key='n'>新增</a>
+				<!-- 快捷键ctrl+e -->
+				<a href="#" class="easyui-linkbutton" onclick="editMessage()" key='e'>编辑</a>
+				<!-- 快捷键ctrl+d -->
+				<a href="#" class="easyui-linkbutton" onclick="deleteMessage()" key="d">删除</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbMessage" class="easyui-datagrid" data-options="paramForm:'conditionForm',
+				    orderBy:'modifiedTime desc',
+				    singleSelect:true,
+				    fitColumns:false,
+					maskit:'messageBtnList',query:'fmxMessageService#getMessageList'">
+					<thead>
+						<tr>
+							<th data-options="field:'messageSubject',width:250,formatter:formatSubject">公告标题</th>
+							<th data-options="field:'createdTime',width:100,formatter:'datetime',format:'YYYY-MM-DD',align:'left'">发布时间</th>
+							<th data-options="field:'creatorUser',width:75">发布人</th>
+							<th data-options="field:'messageStatus1',width:100,formatter:formatStatus,format:'YYYY-MM-DD'" >失效时间</th>
+							<th data-options="field:'messageStatus2',width:85,formatter:formatStatus" >失效操作人</th>		
+							<th data-options="field:'messageStatus',width:70,formatter:formatStatus,align:'left'" >状态</th>					
+							<th hidden="true" data-options="field:'messageStartTime',width:110,formatter:'datetime',format:'YYYY-MM-DD HH:mm'">生效时间(开始)</th>
+							<th hidden="true" data-options="field:'messageEndTime',width:110,formatter:'datetime',format:'YYYY-MM-DD HH:mm'">生效时间(结束)</th>
+							<th hidden="true" data-options="field:'modifiedTime',width:125,formatter:'datetime',format:'YYYY-MM-DD HH:mm:ss'">最近一次更新时间</th>
+							<th hidden="true" data-options="field:'modifyUser',width:85">最近一次更新人</th>
+							<th data-options="field:'messageStatus3',width:170,formatter:formatStatus,sortable:false" >操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>			
+		</div>	
+		<div id="dlgMessage" class="easyui-dialog" style="padding: 10px;width:600px;" data-options="closed:true,buttons:'#dlg-buttons',title:'编辑公告'">
+			<form id="fmMessage" method="post" enctype="multipart/form-data" action="/rest/fmxMessageRest/save.json" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+				<input id="messageId" name="messageId" type="hidden"/>
+				<input id="uploadId" name="uploadId" type="hidden"/>
+				<input id="copyNew" name="copyNew" type="hidden"/>
+				<input id="copyNewAttrFileIds" name="copyNewAttrFileIds" type="hidden"/>
+				<input name="sysVersion" type="hidden" />
+				<input name="messageStatus" type="hidden" />
+				<table style="padding:0px;">
+					<tr>
+						<td width="130"></td> 
+						<td width="185"></td>
+						<td width="90"></td>
+						<td width="185"></td>
+					</tr>
+					<tr>
+						<td align="center"><label>公告标题</label></td>
+						<td align="left" colspan="3"><input id="messageSubject" name="messageSubject" maxlength="250" class="easyui-textbox" data-options="required:true,missingMessage:'请输入公告标题'" style="width:100%;"/></td>
+					</tr>
+					<tr>
+						<td><label for="cbContent">公告内容</label></td>
+						<td align="left" colspan="3">
+							<input type="radio" name="contentOrFile" id="cbContent" checked="checked" style="width:15px" />
+							<input id="messageContent" name="messageContent" maxlength="1000" multiline="true" class="easyui-textbox" style="width:95%;height:50px;"/>
+						</td>
+					</tr>					
+					<tr>
+						<td><label for="cbFile">内容附件</label></td>
+						<td align="left" colspan="3">
+							<input type="radio" name="contentOrFile" id="cbFile" style="width:15px" />
+							<input class="easyui-filebox" id="file" data-options="onChange:uploadFile" title="内容附件" accept="image/*,application/pdf" style="width:95%;"/>
+							<input id="fileId" name="fileId" type="hidden"/>
+						</td>
+					</tr>
+					<tr>
+						<td><label>生效时间(开始)</label></td>
+						<td align="left"><input id="eMessageStartTime" name="messageStartTime" class="easyui-datetimebox" data-options='validType:["datetime"],required:true,missingMessage:"请选择生效开始时间",showSeconds:false'/></td>
+						<td><label>生效时间(结束)</label></td>
+						<td align="left"><input id="eMessageEndTime" name="messageEndTime" class="easyui-datetimebox" data-options="validType:['datetime','dateRangeB','dateRangeA(\'#eMessageStartTime\')'],required:true,missingMessage:'请选择生效结束时间',showSeconds:false" /></td>
+					</tr>
+					<tr>
+						<td><label>目标类型</label></td>
+						<td align="left"><input id="messageTarget" name="messageTarget" type="text" /></td>
+						<td><label>接收目标</label></td>
+						<td align="left" id="ctMessageTargetValue"></td>
+					</tr>					
+					<tr>
+						<td><label>公告主题</label></td>
+						<td align="left"><input id="messageTopic"  name="messageTopic" type="text" /></td>
+						<td></td>
+						<td align="left"></td>
+					</tr>					
+				</table>
+			</form>
+			<div style="text-align: left">
+				<a href="#" class="easyui-linkbutton" id="btn-select-file" >选择公告附件</a>
+			</div>
+			<div id="message-file-uploader" class="easyui-fineuploader"
+				data-options="{
+						/**上传控件模板,default是带缩略图的列表,gallery是相册,list是纯列表没有修改文件名和缩略图功能 **/
+					 	template : 'list',
+					 	/**关闭自动上传**/
+					 	autoUpload : true,
+					 	/**上传时把btnList禁用**/
+					 	maskit : 'dlg-buttons',
+					 	/**开启调试模式,开发完成后应该把这个开关设为false**/
+					 	debug : false,		
+					 	button: $('#btn-select-file')[0],		 	
+					 	request : {
+					 		/**上传文件服务端地址**/
+					 		endpoint : $url('/rest/fmxMessageRest/fineUpload.json'),
+					 		/**上传文件提交的参数名**/
+					 		inputName : 'file',
+					 		/**上传的文件标识**/
+					 		uuidName : 'fileId'
+					 	},
+					 	deleteFile : {
+					 		/**启用文件删除功能**/
+					 		enabled : true,
+					 		/**文件删除服务端地址**/
+					 		endpoint : $url('/rest/fmxMessageRest/deleteUpload.json')
+					 	},
+					 	callbacks: {
+					 		onSubmitDelete:function(id) {
+					 			var uploads = this.getUploads({id:id});
+					 			if(uploads.uuid){
+					 			   var ids = $('#copyNewAttrFileIds').val();
+					 			   if(ids){
+					 			      var arr = ids.spli(','),idx = arr.indexOf(uploads.uuid);
+					 			      if(idx > -1){arr.shift(idx);$('#copyNewAttrFileIds').val(arr.join(','));}
+					 			   }
+					 			}
+					 		}
+					 	},
+					 	validation: {
+					 		/**最多只能选择5个文件**/
+					 		itemLimit: 5,
+					 		/**文件大小限制,单位是字节,100*1024=100kB**/
+					 		sizelimit : 1000 * 8 * 1024,
+					 		/**文件类型限制**/
+					 		allowedExtensions : ['doc','docx','xls','xlsx','pdf']
+					 	},
+	                    display: {
+	                    	/**显示文件大小**/
+	                        fileSizeOnSubmit: true
+	                    }	 	
+					 }">
+			</div>			
+			<div id="dlg-buttons">
+				<a href="#" id="btnPreviewFile" class="easyui-linkbutton" target="_blank" onclick='return previewFile();'>预览</a>
+				<a href="#" class="easyui-linkbutton" onclick="saveMessage()" default>提交</a>
+				<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgMessage').dialog('close')">取消</a>
+			</div>			
+		</div>		
+	</div>
+	<script type="text/javascript">
+		var editingRow = false,showUrl = $url('/rest/fmxFileRest/show/{fileId}/{filename}'),UPLOADING = "1"
+		downloadUrl = $url('/rest/fmxFileRest/download/{fileId}/{filename}');
+		function getShowUrl(file) {
+			var name = encodeURIComponent(file.fileName || file.name);
+			var url = showUrl.replace("{fileId}",file.fileId || file.uuid).replace("{filename}",name);
+			return url;
+		}
+		function getDownloadUrl(file) {
+			var name = encodeURIComponent(file.fileName || file.name);
+			var url = downloadUrl.replace("{fileId}",file.fileId || file.uuid).replace("{filename}",name);
+			return url;
+		}
+		function checkFileUploading(id) {
+			var $el = $("#fileId");
+			if(id) {
+				$el.val(id);
+			}else{
+				id = $el.val();
+				if(UPLOADING === id) {
+					$.messager.alert("提示信息","公告内容附件正在上传，请稍候！");
+					return false;
+				}
+			}
+			return id;
+		}
+		function validContentOrFile() {
+			if($("#cbContent").prop("checked")){
+				if(!$("#messageContent").textbox("getValue")){
+					$.messager.alert("提示信息","公告内容不能为空！");
+					return false;					
+				}
+			}else{
+				if(!$("#file").filebox("getValue") && !(editingRow && editingRow.fileInfo)){
+					$.messager.alert("提示信息","请选择公告内容附件！");
+					return false;
+				}
+			}
+			return true;
+		}
+		function doCheckRadio(id) {
+			if(id=='cbFile'){
+	    		$("#messageContent").textbox("setText","").textbox("disable");
+	    		$("#file").filebox("enable");
+	    	}else{
+	    		id='cbContent';
+	    		$("#messageContent").textbox("enable");
+	    		$("#file").filebox("clear").filebox("disable");
+	    	}
+			$("#btnPreviewFile").attr('href','#');
+			$("#fileId").val('');
+			$('#'+id).prop('checked',true);
+		}
+		function uploadFile() {
+			var $el = $("#file");
+			if(checkFileUploading() === false) {
+				$el.filebox("clear");
+				return;
+			}
+			var file = $el.siblings().find("[type=file]")[0];
+			if(file.value && file.files && file.files.length > 0) {
+				var formData = new FormData();
+				formData.append("file",file.files[0]);
+				formData.append("fileId",$("#fileId").val());
+				checkFileUploading(UPLOADING);
+				$.ajax({
+					url:$url('/rest/fmxMessageRest/uploadContentFile.json'),
+					data:formData,
+					complete:function(res) {
+						$("#fileId").val('');
+						if(res.responseText){
+							var ret = JSON.parse(res.responseText);
+							if(ret.message) {
+								$el.filebox("clear");
+								$.messager.alert("提示信息",ret.message);
+							}else if(ret.data){
+								checkFileUploading(ret.data);
+							}
+						}
+					},
+					type:"post",
+					cache: false,
+					dataType: 'html',
+					contentType: false,
+					processData: false
+				});
+			}
+		}
+		function showContent(content) {
+			if(typeof content == 'number'){
+				var state = $("#tbMessage").data("datagrid");
+				if(state && state.data && state.data.rows) {
+					var row = state.data.rows[content];
+					if(row && row.messageContent){
+						content = row.messageContent;
+					}
+				}
+			}
+			$.messager.alert({
+				title:'公告内容预览',
+				msg : "<p style='text-align:left;'>"+content+"</p>",
+				icon:false,
+				width:650,
+				height:'auto'
+			});
+		}
+		function previewFile() {
+			if(!validContentOrFile()){
+				return false;
+			}else if($("#cbContent").prop("checked")){
+				var content = $("#messageContent").textbox('getValue');
+				if(content) {
+					showContent(content);
+				}
+				return false;
+			}
+			var $el = $("#btnPreviewFile");
+			var id = checkFileUploading();
+			if(id === false){
+				return false;
+			}else if(id){
+				var url = $url('/rest/fmxMessageRest/showTempContentFile.json?fileId='+id);
+				$el.attr('href',url);
+			}else if(editingRow && editingRow.fileInfo){
+				$el.attr("href",getShowUrl(editingRow.fileInfo));
+			}
+			if("#" == $el.attr("href")){
+				$.messager.alert("提示信息","请选择公告内容附件！");
+				return false;
+			}
+		}
+		$(function(){
+			$.post($url('/rest/fmxMessageRest/getMessageConfig.json'),null,function(result){
+				if(result && result.code == 0) {
+					var selectors = result.data.selectors,topics = result.data.topics;
+					if(selectors) {
+						var val;
+						if(selectors.length > 0) {
+							selectors[0].selected=true;
+							val = selectors[0].resolver;
+						}
+						$("#messageTarget").combobox({
+							data : selectors,
+							onChange:onMessageTargetChange,
+							idField:"resolver",
+							valueField:"resolver",
+							textField:"descriptor",
+							value:val,
+							reqired:true,
+							missingMessage:"请选择目标类型",
+							emptyItemEnable:false,
+						});
+					}
+					if(topics) {
+						var val;
+						if(topics.length > 0) {
+							topics[0].selected=true;
+							val = topics[0].topic;
+						}
+						$("#messageTopic").combobox({
+							data:topics,
+							idField:"topic",
+							valueField:"topic",
+							textField:"descriptor",
+							value:val,
+							reqired:true,
+							missingMessage:"请选择公告主题",							
+							emptyItemEnable:false,
+						});
+					}
+				}else{
+					$.messager.alert("错误信息", result.message,'error');
+				}
+			},"JSON");
+		    $.extend(true,$.fn.datebox.defaults.rules,{
+		        //规则名
+		    	dateRange : {
+		    		//校验时执行的方法,返回true表示校验通过,false则是校验失败,将提示message的信息
+					validator : function(value,start) {
+						//开始日期
+						var d1 = moment($(start).datebox('getValue'));
+						//截止日期
+						var d2 = moment(value);
+						//如果截止日期大于开始日期,则校验通过
+						return moment.max(d1,d2) === d2;
+					},
+					//校验失败时提示的信息
+					message : "结束日期必须大于起始日期！"	    		
+		    	},
+		    	dateRangeA : {
+		    		//校验时执行的方法,返回true表示校验通过,false则是校验失败,将提示message的信息
+					validator : function(value,start) {
+						//开始日期
+						var d1 = moment($(start).datebox('getValue'));
+						//截止日期
+						var d2 = moment(value);
+						//如果截止日期大于开始日期,则校验通过
+						return moment.max(d1,d2) === d2 && moment.max(d2,moment(new Date())) == d2;
+					},
+					//校验失败时提示的信息
+					message : "生效结束时间必须晚于生效开始时间！"	    		
+		    	},
+		    	dateRangeB : {
+		    		//校验时执行的方法,返回true表示校验通过,false则是校验失败,将提示message的信息
+					validator : function(value) {
+						//截止日期
+						var d2 = moment(value);
+						return moment.max(d2,moment(new Date())) == d2;
+					},
+					//校验失败时提示的信息
+					message : "生效结束时间必须晚于当前时间！"	    		
+		    	}			    	
+		    });
+		    $("input[name=contentOrFile]","#fmMessage").change(function(evt){
+		    	var tar = evt.target;
+		    	doCheckRadio(tar.id);
+		    	if(editingRow && editingRow.fileInfo){
+		    		delete editingRow.fileInfo;
+		    	}
+		    });
+		});
+		function onMessageTargetChange(value,oldValue) {
+			var data = $.data(this,'combo').options.data;
+			var $ct = $("#ctMessageTargetValue");
+			$ct.children().detach();
+			if(value && $.isArray(data)) {
+				var resolver;
+				for(var i = 0 ; i < data.length;i++) {
+					if(value == data[i].resolver) {
+						resolver = data[i];
+						break;
+					}
+				}
+				if(resolver) {
+					if(resolver.selector) {
+						$ct.append(resolver.selector);
+						if(editingRow && editingRow.messageTargetValue) {
+							var $input = $("#eMessageTargetValue",resolver.selector);
+							var m = $.fn[resolver.selectorConfig.control].methods.setValues;
+							if(m){
+								m.call($input,$input,editingRow.messageTargetValue);
+							}
+							//[resolver.selectorConfig.control]('setValues',editingRow.messageTargetValue);
+						}
+					}else if(resolver.selectorConfig && resolver.selectorConfig.control){
+						var $el = $('<div><input id="eMessageTargetValue" name="messageTargetValue" type="text" /></div>').appendTo($ct);
+						var $input = $el.children();
+						var config = resolver.selectorConfig;
+						if(editingRow && editingRow.messageTargetValue) {
+							config = $.extend({},config);
+							config.value = editingRow.messageTargetValue;
+						}
+						$input[resolver.selectorConfig.control](config);
+						resolver.selector = $el;
+					}
+				}
+			}
+		}
+		
+		function formatSubject(value, rowData,rowIndex) {
+			var fileInfo = rowData.fileInfo;
+			if(fileInfo){
+				var $temp = $("<a target='_blank'></a>"),url = getShowUrl(fileInfo);
+				value = $temp.attr("href",url).text(value).prop("outerHTML");
+			}else if(rowData.messageContent) {
+				var $temp = $("<a href='#'></a>");
+				$temp.attr("onclick","showContent("+rowIndex+");");
+				value = $temp.text(value).prop("outerHTML");
+			}
+			return "<div style='text-overflow:ellipsis;white-space:nowrap'>"+value+"</div>";
+		}
+		function formatStatus(value, rowData, rowIndex) {
+			var field = this.field,status = rowData.messageStatus;
+			if('messageStatus1' === field){//失效时间
+				if(status !== '3'){
+					return '';
+				}
+				var oldStatus = rowData.oldMessageStatus;
+				var date = oldStatus === status ? rowData.modifiedTime : rowData.messageEndTime;
+				var dateStr = fmx.formatters.formatDatetime(date,this.format);
+				var $el = $("<a href='#' onclick='quickAction(this);' />")
+				          .attr("data-index",rowIndex)
+				          .attr("data-messageid",rowData.messageId)
+				          .attr("data-status",status)
+				          .attr("data-action",'2');
+				$el.text(dateStr);
+				return $el.prop("outerHTML");
+			}else if('messageStatus2' == field) {//失效操作人
+				if(status !== '3'){
+					return '';
+				}
+				var oldStatus = rowData.oldMessageStatus;
+				return status === oldStatus ? rowData.modifyUser : 'System';
+			}else if('messageStatus' == field){
+				if("0" == value) {
+					return "待生效";
+				}else if("1" == value){
+					return "生效";
+				}else if("3" == value) {
+					return "失效";
+				}
+			}else if('messageStatus3' == field) {
+				var $el = $("<input type='button' style='width:70px;' onclick='quickAction(this);' />")
+		                  .attr("data-index",rowIndex)
+		                  .attr("data-messageid",rowData.messageId)
+		                  .attr("data-status",status);
+				
+				var html = [];
+				if('1' == status) {
+					html.push($el.attr('value','失效').attr('data-action','0').prop("outerHTML"));
+					html.push("&nbsp;&nbsp;&nbsp;")
+				}		
+				html.push($el.attr('value','重发').attr('data-action','1').prop("outerHTML"));
+				html.push("&nbsp;&nbsp;&nbsp;")
+				return html.join('');
+			}
+		}
+	
+		function quickAction(btn) {
+			var $el= $(btn),messageId = $el.attr('data-messageid'),status = $el.attr('data-status'),act = $el.attr('data-action');
+			if(act =='2'){
+				var idx = parseInt($el.attr('data-index'));
+				var rows = $('#tbMessage').datagrid('getRows');
+				if(idx < rows.length){
+					$.messager.alert("失效原因",rows[idx].messageParams || '时间到期，自动失效');
+				}
+				return;
+			}else if(act == '1') {
+				$.messager.confirm("提示","是否要重发当前公告？",function(ret){
+					if(ret){
+						var row = parseInt($el.attr('data-index'));
+						$('#tbMessage').datagrid('selectRow',row);
+						editMessage(true);
+					}
+				});
+			}else if(act == '0') {
+				var opts = {
+						title:"请输入失效原因",
+						content:'<div><input class="messager-input" type="text" style="width:276px;"/></div>',
+						fn:function(msg){
+							msg = typeof msg == 'string' ? msg.trim() : msg;
+							if(msg === undefined){
+								//cancel;
+								return;
+							}else if(!msg){
+								$.messager.alert("提示", "失效原因必须输入！",'error',function(){
+									$.messager.prompt(opts);
+								});
+								return;
+							}else if(msg.length > 250) {
+								$.messager.alert("错误信息", "失效原因请控制在250个字符以内！",'error');
+								return;
+							}
+							msg = encodeURIComponent(msg);
+							var url = $url('/rest/fmxMessageRest/disableMessage.json');
+							$.post(url,'messageId='+messageId+'&params='+msg,function(ret){
+								if(ret && ret.code == 0) {
+									$.messager.show({title:'提示信息',msg:'更新成功！',timeout:5000,showType:'slide'});
+									$('#tbMessage').datagrid('reload');
+								}else{
+									var msg = ret.message || '操作失败！';
+			  						$.messager.alert("错误信息", msg,'error');
+								}
+							},'json');
+						}
+				}
+				$.messager.prompt(opts);
+			}
+		}
+		function saveMessage() {
+			if(validContentOrFile() == false || checkFileUploading() === false || !($('#fmMessage').form('enableValidation').form('validate'))){
+				return;
+			}			
+			function doSave() {
+				$('#fmMessage').form("submit",{
+					success:function(result) {
+						if(typeof result == 'string') {
+							result = JSON.parse(result);
+						}
+						if(result.code <0 ){
+							var msg = result.message || '操作失败！';
+							$.messager.alert("错误信息", msg,'error');
+						}else{
+							$('#tbMessage').datagrid('reload');
+			  				$.messager.show({title:'提示信息',msg:'公告提交成功！',timeout:5000,showType:'slide'});
+							$('#dlgMessage').dialog('close');
+						}
+					}		  		
+				});
+			}
+			$.messager.confirm("提示","请确认公告内容准确无误！",function(ret){
+				if(ret){
+					doSave();
+				}
+			});
+		}
+		
+		function formLoaded(data,bCopyNew) {
+			var uuid,$uploader = $('#message-file-uploader'),$btnPreviewFile = $("#btnPreviewFile"),$copyNewAttrFileIds = $('#copyNewAttrFileIds');
+			var $filebox = $("#file"),$filetextbox = $filebox.filebox('textbox');
+			$uploader.fineuploader('clearStoredFiles');
+			$btnPreviewFile.attr('href','#');
+			$("#fileId").val('');
+			$filebox.filebox("clear");
+			$filetextbox.attr('placeholder','');
+			$('#copyNew').val(bCopyNew ? '1' : '0');
+			$copyNewAttrFileIds.val('');
+			if(data){
+				if(data.fileInfo) {
+					$filetextbox.attr('placeholder',data.fileInfo.fileName);
+					$btnPreviewFile.attr("href",getShowUrl(data.fileInfo));
+				}
+				uuid = data.messageId;
+				$.post($url('/rest/fmxMessageRest/getUploadedFileList.json'),'messageId='+uuid,function(files){
+					if($.isArray(files)){
+						var attfiles=[],file;
+						var $temp = $("<a target='_blank'></a>"),uploads,$file,fileIds=[];
+						for(var i = 0 ; i < files.length ; i++) {
+							file = files[i];
+							if(file.bizType == 11) {//公告附件
+								if(bCopyNew){
+									delete file.deleteFileEndpoint;
+									delete file.deleteFileParams;
+									fileIds.push(file.uuid);
+								}
+								$uploader.fineuploader('addInitialFiles',[file]);
+								uploads = $uploader.fineuploader("getUploads",{uuid:file.uuid});
+								if(uploads) {
+									$file = $($uploader.fineuploader("getItemByFileId",uploads.id));
+									$file.find(".qq-upload-file").html($temp.attr('href',getDownloadUrl(file)).text(file.name).prop('outerHTML'));
+								}
+							}
+						}
+						if(bCopyNew){
+							$copyNewAttrFileIds.val(fileIds.join(','));
+						}
+					}
+				},'json');
+			}else{
+				uuid = fmx.utils.getUuid();
+				$btnPreviewFile.attr("href",'#');
+				var now = moment().format('YYYY-MM-DD');
+				$("#eMessageStartTime").datetimebox("setValue",now+" 00:00");
+				$("#eMessageEndTime").datetimebox("setValue",now+" 23:59");
+			}
+			$('#uploadId').val(uuid);
+			$uploader.fineuploader('setParams',{uploadId:uuid});
+			$uploader.fineuploader('setDeleteFileParams',{uploadId:uuid});
+		}
+
+		
+		function editMessage(bCopyNew) {
+			var row = $('#tbMessage').datagrid('getSelected');
+			if (row){
+				editingRow = $.extend({},row);
+				doCheckRadio(row.fileInfo ? 'cbFile' : false);
+				$('#fmMessage').form('load',editingRow);
+				formLoaded(editingRow,bCopyNew);
+				$("#dlgMessage").dialog("setTitle","编辑公告").dialog("open");
+				if(!row.fileInfo) {
+					$("#file").filebox("clear").filebox("disable");
+				}
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function newMessage() {
+			editingRow = false;
+			$('#fmMessage').form('reset');
+			formLoaded(false);
+			doCheckRadio();
+			$("#dlgMessage").dialog("setTitle","新增公告").dialog("open");
+		}
+		
+		function deleteMessage() {
+			var row = $('#tbMessage').datagrid('getSelected');
+			if(!row) {
+				$.messager.alert('提示信息', '请选择需要操作的记录！','warning');
+				return;
+			}
+			$.messager.confirm('删除公告', '确定删除选中的公告信息？', function(retn){
+				if (retn){
+					$('#messageBtnList').maskit();
+					$.post($url('/rest/fmxMessageRest/delete.json'), {
+						messageId : row.messageId
+      				}, function(result) {
+      					$('#messageBtnList').maskit('unmask');
+  						if (result.code == 0) {
+  							$('#tbMessage').datagrid('reload');
+  			  				$.messager.show({title:'提示信息',msg:'公告删除成功！',timeout:5000,showType:'slide'});
+      					}
+      				}, 'json'); 
+				}
+			});
+		}		
+	</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>消息模板</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" " >
+		<form id="conditionForm">
+			<ul class="conditionUl" id="dictTypeUl">
+				<li>
+		    		<label>模板名称</label>
+		    		<input name="tplName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>模板类型</label>
+		    	    <input name="tplType" class="easyui-combobox" codetype="MESSAGE_TEMPLATE"/>
+		    	</li>
+		    	<li>
+		    		<label>模板标题</label>
+		    		<input name="tplTitle" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="msgTemplateControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchMsg()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="add()">添加</a> 
+				<a href="#" class="easyui-linkbutton" onclick="edit()">修改</a> 
+				<a href="#" class="easyui-linkbutton" onclick="destroy()">删除</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table  class="easyui-datagrid" id="tbMsg" data-options="maskit:'msgTemplateControl',
+					query:'cn.com.yict.framemax.frame.model.FmxMsgTemplateModel',paramForm:'conditionForm'">
+					<thead>
+						<tr>
+							<th data-options="field:'tplCode',width:140">模版编号</th>
+							<th data-options="field:'tplName',width:160">模版名称</th>
+							<th data-options="field:'tplType',width:100" codetype="MESSAGE_TEMPLATE">模版类型</th>
+							<th data-options="field:'tplTitle',width:160">模版标题</th>
+							<th data-options="field:'tplContent',width:260,formatter:'htmlencode'">正文模版</th>
+						</tr>
+					</thead>
+				</table>
+				<div id="dlg" class="fitem easyui-dialog" style="width:700px;" data-options="closed:true,buttons:'#dlg-buttons'">
+					<form id="fm" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+						<input name=sysVersion type="hidden">
+						<input id="tplId" name="tplId" type="hidden">
+						<table style="width:100%">
+							<tr>
+								<td><label>模版名称</label></td>
+								<td style="width:320px;"><input name="tplName" style="width:100%" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入模版名称'" /></td>
+								<td><label>模版编号</label></td>
+								<td><input name="tplCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入模版编号'" /></td>
+							</tr>
+							<tr>
+								<td><label>模版标题</label></td>
+								<td><input name="tplTitle" class="easyui-textbox" maxlength="256" style="width:100%" /></td>
+								<td><label>模版类型</label></td>
+								<td><input name="tplType" class="easyui-combobox" codetype="MESSAGE_TEMPLATE" data-options="required:true,missingMessage:'请选择模板类型'" /></td>								
+							</tr>
+							<tr>
+								<td><label>正文模板</label></td>
+								<td colspan="3"><input name="tplContent" class="easyui-textbox" maxlength="4000" data-options="required:true,multiline:true" style="width:100%; height:150px;" /></td>
+							</tr>
+						</table>
+					</form>
+				</div>
+				<div id="dlg-buttons">
+					<a href="#" class="easyui-linkbutton" onclick="save()">保存</a> 
+					<a href="#S" class="easyui-linkbutton" onclick="javascript:$('#dlg').dialog('close')">取消</a>
+				</div>
+			</div>
+		</div>
+	<script type="text/javascript">
+      	function add() {
+			$('#dlg').dialog('open').dialog('setTitle', '新增消息模板');
+      		$('#fm').form('reset');
+      	}
+      	
+      	function edit(url) {
+      		var row = $('#tbMsg').datagrid('getSelected');
+	      	if (row) {
+	      		$('#dlg').dialog('open').dialog('setTitle', '编辑消息模板');
+	      		$('#fm').form('load', row);
+	      	}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+      	}
+      	
+      	function searchMsg(){
+			$('#tbMsg').datagrid('reload');      		
+      	}
+      	
+      	function save() {
+      		var url=$url("/rest/fmxMsgTemplateRest/save.json");
+   	  		$('#fm').form('submit', {
+	      		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+	      		url : url,
+	      		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+	      		},
+	      		success : function(result) {
+	      			if (result.code < 0) {
+	      				var msg = result.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+	      			} else {
+	      				$('#dlg').dialog('close');
+	      				$('#tbMsg').datagrid('reload');
+	      				$.messager.show({title:'提示信息',msg:'消息模板保存成功！',timeout:5000,showType:'slide'});
+	      			}
+      			}
+      		});
+      	}      
+      	function destroy() {
+      		var url=$url("/rest/fmxMsgTemplateRest/delete.json");
+	      	var row = $('#tbMsg').datagrid('getSelected');
+	      	if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+      			$.messager.confirm('删除消息模板', '确定删除选中的消息模板信息？', function(r) {
+      				if (r) {
+      					$('#msgTemplateControl').maskit();
+      					$.post(url, {
+      						id : row.tplId
+	      				}, function(result) {
+	      					$('#msgTemplateControl').maskit('unmask');
+      						if (result.code == 0) {
+      			  				$.messager.show({title:'提示信息',msg:'消息模板删除成功！',timeout:5000,showType:'slide'});
+	      						$('#tbMsg').datagrid('reload');
+	      					} else {
+	      						var msg = result.message || '操作失败！';
+	      						$.messager.alert("错误信息", msg,'error');
+	      					}
+	      				}, 'json');
+	      			}
+	      		});
+	      	}
+	      }      
+    </script>
+	</div>
+</body>
+</html>

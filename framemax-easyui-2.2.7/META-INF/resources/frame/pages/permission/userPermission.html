@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>用户权限代码授权</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false" title=" ">
+		<ul class="conditionUl" id="conditionForm">
+	    	<li>
+	    		<label>登录账号</label>
+	    		<input id="account" name="account" class="easyui-textbox" operator="likeAnywhere"/>
+	    	</li>
+	    	<li>
+	    	    <label>用户名称</label>
+	    	    <input id="userName" name="userName" class="easyui-textbox" operator="likeAnywhere"/>
+	    	</li>
+	    	<li>
+	    		<label>中心账号</label>
+	    		<input id="centralAccount" name="centralAccount" class="easyui-textbox" operator="likeAnywhere"/>
+    		</li>
+	    	<li>
+	    		<label>工号</label>
+	    		<input id="userEmpNo" name="userEmpNo" class="easyui-textbox" operator="likeAnywhere"/>
+    		</li>  		
+	    </ul>
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="roleMenuControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchUser()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="save()">保存</a>
+			</div>
+			<div data-options="region:'center',border:false,split:true">					
+				<div class="easyui-layout" style="width:100%;height:100%;">		
+				    <div data-options="region:'west',border:false" id="Main"style="width:50%;padding-right:10px;">
+						<table id="tbUser" class="easyui-datagrid" data-options="paramForm:'conditionForm',
+							maskit:'userBtnList',query:'cn.com.yict.framemax.frame.model.FmxUserModel'">
+							<thead>
+								<tr>
+									<th data-options="field:'account',width:120">登录账号</th>
+									<th data-options="field:'userName',width:220">用户名称</th>
+									<th data-options="field:'centralAccount',width:120">中心账号</th>
+									<th data-options="field:'userEmpNo',width:120">工号</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div data-options="region:'center',border:false">
+						<table id="tbPerm" queryFields="[{fieldName:'userId',fieldValue:'-1'}]" 
+							class="easyui-datagrid"	data-options="maskit:'rolePermControl',singleSelect:false,query:'UserPermissionQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'permCode',width:'40%'">权限代码</th>
+									<th data-options="field:'permName',width:'55%'">权限名称</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var rowData=[],currentRowIndex;
+		$(document).ready(function(){
+			$.extend(true,$("#tbUser").datagrid("options"),{
+				onCheck:function(index, row){
+					currentRowIndex = index;
+			    	var userId = row["userId"],rolePerm = $("#tbPerm");
+			    	var options = rolePerm.datagrid("options");
+			    	options.queryFields = [{fieldName:'userId',fieldStringValue:userId,fieldType:'long'}];
+			    	rolePerm.datagrid('reload');
+			    	rowData=[];
+			    },
+			    onLoadSuccess : function(data) {
+			    	$(this).datagrid('checkRow',(currentRowIndex && data.rows && currentRowIndex < data.rows.length) ? currentRowIndex : 0);
+			    }				
+			});
+			$.extend(true,$("#tbPerm").datagrid("options"),{
+				onSelect:function(index, row){
+					checkData(row,1);
+				},
+				onUnselect:function(index, row){
+					checkData(row,0);
+				},
+				onSelectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],1);
+					}
+				},
+				onUnselectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],0);
+					}
+				}
+			});
+		});
+	
+		function searchUser(){
+			$("#tbUser").datagrid('reload');
+		}
+	
+		function checkData(row,tagVar){
+			var selectData={"checked":tagVar,"userId":row.userId,"permCode":row.permCode,"userPermissionId":row.userPermissionId};
+			var rowFlag=false;
+			for(var i=0;i<rowData.length;i++){
+				if(row.permCode==rowData[i].permCode&&row.userId==rowData[i].userId){
+					rowData[i].checked=tagVar;
+					rowFlag=true;
+				}
+			}
+			if(!rowFlag){
+				rowData.push(selectData);
+			}
+		}
+	
+		function save(){
+			var url=$url('/rest/fmxUserPermissionRest/saveAll.json');
+			$postJSON(url,rowData,function(data){
+				if(data.code>=0){
+					rowData=[];
+	  				$.messager.show({title:'提示信息',msg:'用户权限代码保存成功！',timeout:5000,showType:'slide'});
+				}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+		    	}
+			});
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>菜单名称</label>
+		    		<input id="menuCode" name="menuCode" class="easyui-combogrid" codetype="MenuModel"/>
+		    	</li>
+		    	<li>
+		    	    <label>访问IP</label>
+		    	    <input id="reqIp" name="reqIp" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>访问时间</label>
+		    		<input id="reqTimeStart" name="reqTimeStart" class="easyui-datebox"/>
+	    		</li>
+		    	<li>
+		    		<label>到</label>
+		    		<input id="reqTimeEnd" name="reqTimeEnd" class="easyui-datebox" />
+	    		</li>
+		    	<li>
+		    	    <label>响应状态</label>
+		    	    <input id="respStatus" name="respStatus" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+	    		<li>
+		    		<label>操作人</label>
+		    		<input id="creator" name="creator" class="easyui-combogrid" codetype="UserAccount"/>
+		    	</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="sysCountControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchLog()">查询</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbLogCount" class="easyui-datagrid" data-options="maskit:'sysCountControl',
+					paramForm:'conditionForm',query:'SysAccessCountQuery'">
+					<thead>
+						<tr>
+							<th data-options="field:'menuCode',width:120" codetype="MenuModel">功能名称</th>
+							<th data-options="field:'reqUrl',width:160">访问地址</th>
+							<th data-options="field:'reqIp',width:140">访问IP</th>
+							<th data-options="field:'reqTime',width:140,formatter:'date',format:'YYYY-MM-DD'">访问时间</th>
+							<th data-options="field:'respStatus',width:100">响应状态</th>
+							<th data-options="field:'creator',width:100">操作人</th>
+							<th data-options="field:'reqCount',width:100">访问次数</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script>
+		function searchLog(){
+			$("#tbLogCount").datagrid('reload');
+		}
+	</script>
+</body>
+</html>

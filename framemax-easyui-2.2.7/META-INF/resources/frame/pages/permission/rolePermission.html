@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>角色权限代码授权</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+			<ul class="conditionUl" id="conditionForm">
+				<li>
+		    		<label>角色名称</label>
+		    		<input id="roleId" name="roleId" class="easyui-combogrid" codetype="RoleModel" />
+		    	</li>
+		    	<li>
+		    		<label>权限名称</label>
+		    		<input id="permCode" name="permCode" class="easyui-combogrid" codetype="PermModel" />
+		    	</li>
+		    </ul>
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="rolePermControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchRole()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="savePerm()">保存</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<div class="easyui-layout" data-options="fit:true">
+					<div data-options="region:'west',border:false" style="width:50%;padding-right:10px;">
+						<table id="tbRole" class="easyui-datagrid"	data-options="paramForm:'conditionForm',query:'RoleInfoQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'roleName',width:'40%'">角色名称</th>
+									<th data-options="field:'roleDesc',width:'55%'">角色备注</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div data-options="region:'center',border:false">
+						<table id="tbPerm" queryFields="[{fieldName:'roleId',fieldValue:'-1'}]" 
+							class="easyui-datagrid"	data-options="maskit:'rolePermControl',singleSelect:false,query:'RolePermissionQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'permCode',width:'40%'">权限代码</th>
+									<th data-options="field:'permName',width:'55%'">权限名称</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		var rowData=[],currentRowIndex;
+		$(document).ready(function(){
+			$.extend(true,$("#tbRole").datagrid("options"),{
+				onCheck:function(index, row){
+					currentRowIndex = index;
+			    	var roleId = row["roleId"],rolePerm = $("#tbPerm");
+			    	var options = rolePerm.datagrid("options");
+			    	options.queryFields = [{fieldName:'roleId',fieldStringValue:roleId,fieldType:'long'}];
+			    	rolePerm.datagrid('reload');
+			    	rowData=[];
+			    },
+			    onLoadSuccess : function(data) {
+			    	$(this).datagrid('checkRow',(currentRowIndex && data.rows && currentRowIndex < data.rows.length) ? currentRowIndex : 0);
+			    }
+			});
+			$.extend(true,$("#tbPerm").datagrid("options"),{
+				onSelect:function(index, row){
+					checkData(row,1);
+				},
+				onUnselect:function(index, row){
+					checkData(row,0);
+				},
+				onSelectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],1);
+					}
+				},
+				onUnselectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],0);
+					}
+				}
+			});
+		})
+	
+		function searchRole(){
+			$("#tbRole").datagrid('reload');
+		}
+	
+		function checkData(row,tagVar){
+			var selectData={"checked":tagVar,"roleId":row.roleId,"permCode":row.permCode,"permId":row.permId};
+			var rowFlag=false;
+			for(var i=0;i<rowData.length;i++){
+				if(row.permCode==rowData[i].permCode&&row.roleId==rowData[i].roleId){
+					rowData[i].checked=tagVar;
+					rowFlag=true;
+				}
+			}
+			if(!rowFlag){
+				rowData.push(selectData);
+			}
+		}
+	
+		function savePerm(){
+			var url=$url('/rest/fmxRolePermissionRest/saveRoleParm.json');
+			$postJSON(url,rowData,function(data){
+				if(data.code>=0){
+					rowData=[];
+	  				$.messager.show({title:'提示信息',msg:'角色权限代码保存成功！',timeout:5000,showType:'slide'});
+				}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+		    	}
+			});
+		}
+	</script>
+</body>
+</html>

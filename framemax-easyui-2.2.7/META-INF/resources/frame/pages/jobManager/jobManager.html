@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>Job代码</label>
+		    		<input name="jobCode" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>Job名称</label>
+		    	    <input name="jobName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>Service类方法</label>
+		    	    <input name="serviceMethod" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>状态</label>
+		    		<input name="jobStatus" class="easyui-combobox" codetype="JOB_STATUS"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="jobBtnList" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchJobList()" default="default">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newJob()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editJob()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteJob()">删除</a>
+				<a href="#" class="easyui-linkbutton" onclick="startJob()">启动</a>
+				<a href="#" class="easyui-linkbutton" onclick="stopJob()">停止</a>
+				<a href="#" class="easyui-linkbutton" onclick="executeOne()">立即运行</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbJobList" class="easyui-datagrid" data-options="paramForm:'conditionForm',maskit:'jobBtnList',query:'bean:fmxJobDataListQueryProvider'">
+					<thead>
+						<tr>
+							<th data-options="field:'jobCode',width:100">Job代码</th>
+							<th data-options="field:'jobName',width:120">Job名称</th>
+							<th data-options="field:'serviceMethod',width:260">Service类方法</th>
+							<th data-options="field:'cronExpression',width:100">cron表达式</th>
+							<th data-options="field:'jobStatus',width:60" codetype="JOB_STATUS">状态</th>
+							<th data-options="field:'allowConcurrent',width:60" codetype="JOB_STATUS">允许并发执行</th>
+							<th data-options="field:'lastRunDate',width:120,formatter:'datetime',format:'YYYY-MM-DD HH:mm:ss'">最后运行时间</th>
+							<th data-options="field:'modifiedTime',width:120,formatter:'datetime',format:'YYYY-MM-DD HH:mm:ss'">最后更新时间</th>
+							<th data-options="field:'modifier',width:100">最后更新人</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgJob" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+		<form id="fmJob" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td width="100"></td> 
+					<td width="120"></td>
+					<td width="85"></td>
+					<td width="120"></td>
+				</tr>			
+				<tr>
+					<td><label>Job代码</label></td>
+					<td colspan="3"><input name="sysVersion" type="hidden"/>
+						<input id="jobCode" name="jobCode" maxlength="50" class="easyui-textbox" data-options="required:true,missingMessage:'请输入Job代码'" style="width:400px;"/>
+					</td>
+				</tr>
+				<tr>
+					<td><label>Job名称</label></td>
+					<td colspan="3"><input name="jobName" maxlength="100" class="easyui-textbox" data-options="required:true,missingMessage:'请输入Job名称'" style="width:400px;"/></td>
+				</tr>
+				<tr>
+					<td><label>Service类方法</label></td>
+					<td colspan="3"><input maxlength="200" name="serviceMethod" class="easyui-textbox" style="width:400px;height:60px" data-options="required:true,multiline:true,missingMessage:'请输入Service类方法'"/></td>
+				</tr>
+				<tr>
+					<td><label>cron表达式</label></td>
+					<td colspan="3"><input maxlength="30" name="cronExpression" class="easyui-textbox" style="width:400px;" data-options="required:true,missingMessage:'请输入cron表达式'"/></td>
+				</tr>
+				<tr>
+					<td><label>是否监控</label></td>
+					<td><input maxlength="30" name="jobMonitoringStatus" class="easyui-combobox" codetype="YES_NO" data-options="required:true,emptyItemEnable:false,missingMessage:'请选择是否监控'"/></td>
+					<td><label>允许并发执行</label></td>
+					<td><input name="allowConcurrent" class="easyui-combobox" codetype="YES_NO" data-options="required:true,emptyItemEnable:false,missingMessage:'请选择是否允许并发执行'"/></td>
+				</tr>
+				<tr>
+					<td><label>状态</label></td>
+					<td colspan="3"><input name="jobStatus" class="easyui-combobox" style="width:400px;" codetype="JOB_STATUS" data-options="required:true,emptyItemEnable:false,missingMessage:'请选择状态'"/></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="saveJob()" default>保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgJob').dialog('close')">取消</a>
+	</div>
+	
+	<div id="dlgExcuteOne" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlgExcuteOne-buttons'">
+		<form id="fmExcuteOne" method="post" class="easyui-form frmContent" data-options="maskit:'dlgExcuteOne-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>参数</label></td>
+					<td><input name="jobCode" type="hidden"/>
+						<input maxlength="200" name="paramStr" class="easyui-textbox" style="width:340px;height:60px" data-options="multiline:true"/>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlgExcuteOne-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="excuteJob()" default>立即执行</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgExcuteOne').dialog('close')">取消</a>
+	</div>
+	<script>
+		$(document).ready(function(){
+		})
+
+		function searchJobList(){
+			$("#tbJobList").datagrid('query');
+		}
+	
+		function newJob(){
+			$('#dlgJob').dialog('open').dialog('setTitle','新增Job配置');
+			$('#fmJob').form('reset');
+			$('#jobCode').textbox('readonly',false);
+		}
+	
+		function editJob(){
+			var row = $('#tbJobList').datagrid('getSelected');
+			if (row){
+				$('#dlgJob').dialog('open').dialog('setTitle','修改Job配置');
+				$('#fmJob').form('load',row);
+				$('#jobCode').textbox('readonly',true);
+		 	}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function deleteJob(){
+			var row = $('#tbJobList').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$.messager.confirm('删除用户', '确定删除选中的Job配置信息？', function(retn){
+					if (retn){
+					    $('#jobBtnList').maskit();
+						$.post($url('/rest/fmxJobRest/delete.json'), row, function(result) {
+	      					$('#jobBtnList').maskit('unmask');
+      						if (result.code == 0) {
+      			  				$.messager.show({title:'提示信息',msg:'Job配置信息删除成功！',timeout:5000,showType:'slide'});
+      			  				$("#tbJobList").datagrid('deleteRow',$("#tbJobList").datagrid('getRowIndex',row));
+	      					} else {
+	      						var msg = result.message || '操作失败！';
+	      						$.messager.alert("错误信息", msg,'error');
+	      					}
+	      				}, 'json');
+					}
+				});
+			}
+		}
+		
+		function saveJob(){
+			var url = $url('/rest/fmxJobRest/save.json');
+			$('#fmJob').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'Job配置保存成功！',timeout:5000,showType:'slide'});
+		                $("#dlgJob").dialog("close");
+		    			$("#tbJobList").datagrid('reload');
+		        	}else{
+						var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+		
+		function startJob(){
+			var row = $('#tbJobList').datagrid('getSelected');
+			if(row){
+				if(row.jobStatus=='Y'){
+					$.messager.alert("提示信息", "该Job已经启动，请不要重复操作！",'warning');
+				}else{
+					$.messager.confirm('启动Job', '确定立即启动选中的Job配置信息？', function(retn){
+						if (retn){
+							$.post($url('/rest/fmxJobRest/startJob.json'), {
+								jobCode:row.jobCode
+							}, function(result) {
+			  					$('#jobBtnList').maskit('unmask');
+									if (result.code == 0) {
+						  				$.messager.show({title:'提示信息',msg:'Job启动成功！',timeout:5000,showType:'slide'});
+						    			$("#tbJobList").datagrid('reload');
+			  					} else {
+			  						var msg = result.message || '操作失败！';
+			  						$.messager.alert("错误信息", msg,'error');
+			  					}
+			  				}, 'json');
+						}
+					});
+				}
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function stopJob(){
+			var row = $('#tbJobList').datagrid('getSelected');
+			if(row){
+				if(row.jobStatus=='N'){
+					$.messager.alert("提示信息", "该Job已经停止，请不要重复操作！",'warning');
+				}else{
+					$.messager.confirm('停止Job', '确定停止选中的Job配置信息？', function(retn){
+						if (retn){
+							$.post($url('/rest/fmxJobRest/stopJob.json'), {
+								jobCode:row.jobCode
+							}, function(result) {
+			  					$('#jobBtnList').maskit('unmask');
+									if (result.code == 0) {
+						  				$.messager.show({title:'提示信息',msg:'Job停止成功！',timeout:5000,showType:'slide'});
+						    			$("#tbJobList").datagrid('reload');
+			  					} else {
+			  						var msg = result.message || '操作失败！';
+			  						$.messager.alert("错误信息", msg,'error');
+			  					}
+			  				}, 'json');
+						}
+					});
+				}
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function executeOne(){
+			var row = $('#tbJobList').datagrid('getSelected');
+			$('#fmExcuteOne').form('clear');
+			if(row){
+				$('#dlgExcuteOne').dialog('open').dialog('setTitle','立即执行-'+row.jobName);
+				$('#fmExcuteOne').form('load',row);
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function excuteJob(){
+			var url = $url('/rest/fmxJobRest/executeOne.json');
+			$('#fmExcuteOne').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'Job运行成功！',timeout:5000,showType:'slide'});
+		                $("#dlgExcuteOne").dialog("close");
+		    			$("#tbJobList").datagrid('reload');
+		        	}else{
+						var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+	</script>
+</body>
+</html>

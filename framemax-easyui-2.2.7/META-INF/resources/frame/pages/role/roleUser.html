@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>用户角色授权</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<ul class="conditionUl" id="conditionForm">
+			<li>
+	    		<label>用户名称</label>
+	    		<input name="userId" class="easyui-combogrid" codetype="UserModel" />
+	    	</li>
+	    	<li>
+	    		<label>角色名称</label>
+	    		<input name="roleId" id="sRoleName" class="easyui-combogrid" codetype="RoleModel" />
+	    	</li>
+	    </ul>
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="roleUserControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchRoleUser()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="saveRoleUser()">保存</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<div class="easyui-layout" data-options="fit:true">
+					<div data-options="region:'west',border:false" style="width:50%;padding-right:10px;">
+						<table id="tbUser" class="easyui-datagrid"
+							 data-options="paramForm:'conditionForm',query:'UserInfoQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'userName',width:'55%'">用户名称</th>
+									<th data-options="field:'userEmpNo',width:'40%'">工号</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div data-options="region:'center',border:false">
+						<table id="tbRole" queryFields="[{fieldName:'userId',fieldValue:'-1'}]" class="easyui-datagrid"	
+							data-options="maskit:'roleUserControl',singleSelect:false,query:'UserRoleQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'roleName',width:'40%'">角色名称</th>
+									<th data-options="field:'roleDesc',width:'55%'">角色备注</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		var rowData=[],currentRowIndex;
+	
+		$(document).ready(function(){
+			$.extend(true,$("#tbUser").datagrid("options"),{
+				onCheck:function(index, row){
+					currentRowIndex = index;
+			    	var userId = row["userId"],userRole = $("#tbRole");
+			    	var options = userRole.datagrid("options");
+			    	options.queryFields = [{fieldName:'userId',fieldStringValue:userId,fieldType:'long'}];
+			    	userRole.datagrid('reload');
+			    	rowData=[];
+			    },
+			    onLoadSuccess : function(data) {
+			    	$(this).datagrid('checkRow',(currentRowIndex && data.rows && currentRowIndex < data.rows.length) ? currentRowIndex : 0);
+			    }			    
+			});
+			$.extend(true,$("#tbRole").datagrid("options"),{
+				onSelect:function(index, row){
+					checkData(row,1);
+				},
+				onUnselect:function(index, row){
+					checkData(row,0);
+				},
+				onSelectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],1);
+					}
+				},
+				onUnselectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],0);
+					}
+				}
+			});
+		})
+	
+		function checkData(row,tagVar){
+			var selectData={"checked":tagVar,"userId":row.userId,"roleId":row.roleId,"roleUserId":row.roleUserId};
+			var rowFlag=false;
+			for(var i=0;i<rowData.length;i++){
+				if(row.roleId==rowData[i].roleId&&row.userId==rowData[i].userId){
+					rowData[i].checked=tagVar;
+					rowFlag=true;
+				}
+			}
+			if(!rowFlag){
+				rowData.push(selectData);
+			}
+		}
+	
+		function saveRoleUser(){	
+			var url=$url('/rest/fmxRoleUserRest/save.json');
+			$postJSON(url,rowData,function(data){
+				if(data.code>=0){
+					rowData=[];
+	  				$.messager.show({title:'提示信息',msg:'用户角色保存成功！',timeout:5000,showType:'slide'});
+				}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+		    	}
+			});
+		}
+	
+		function searchRoleUser(){
+			$("#tbUser").datagrid('reload');
+		}
+	</script>
+</body>
+</html>

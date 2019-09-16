@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+			<ul class="conditionUl" id="paramUl">
+				<li>
+		    		<label>配置项</label>
+		    		<input id="paramCode" name="paramCode" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>配置值</label>
+		    	    <input id="paramValue" name="paramValue" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>备注</label>
+		    		<input id="paramRemark" name="paramRemark" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="paramControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchParam()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newParam()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editParam()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteParam()">删除</a>
+			</div>
+			<div data-options="region:'center',border:false">	
+				<table id="tbParam" class="easyui-datagrid" data-options="paramForm:'conditionForm',
+					maskit:'paramControl',query:'cn.com.yict.framemax.frame.model.FmxParamConfigModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'paramCode',width:180">配置项</th>
+							<th data-options="field:'paramValue',width:240">配置值</th>
+							<th data-options="field:'paramRemark',width:280">备注</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgParam" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+		<form id="fmParam" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>配置项</label></td>
+					<td><input id="eParamId" name="paramId" type="hidden" />
+					<input name=sysVersion type="hidden" />
+					<input id="eParamCode" name="paramCode" style="width:340px;" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入配置项'" /></td>
+				</tr>
+				<tr>
+					<td><label>配置值</label></td>
+					<td><input id="eParamValue" name="paramValue" style="height:50px;width:340px" class="easyui-textbox" maxlength="500" data-options="required:true,multiline:true,missingMessage:'请输入配置值'" /></td>
+				</tr>
+				<tr>
+					<td><label>备注</label></td>
+					<td><input id="eParamRemark" style="height:50px;width:340px" data-options="multiline:true" name="paramRemark" class="easyui-textbox" maxlength="500" /></td>
+				</tr>	
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="saveParam()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgParam').dialog('close')">取消</a>
+	</div>
+	<script>
+		function searchParam(){
+			$('#tbParam').datagrid('reload');
+		}
+	
+		function newParam(){
+			$('#dlgParam').dialog('open').dialog('setTitle','新增参数配置信息');
+			$("#eParamCode").textbox('textbox').attr('readonly',false);
+			$("#fmParam").form('reset');
+		}
+	
+		function editParam(){
+			var row = $('#tbParam').datagrid('getSelected');
+			if (row){
+				$('#dlgParam').dialog('open').dialog('setTitle','修改参数配置信息');
+				$("#eParamCode").textbox('textbox').attr('readonly',true);
+				$("#fmParam").form('load',row);
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+	
+		function deleteParam(){
+			var row = $('#tbParam').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$.messager.confirm('删除参数配置', '确定删除选中的参数配置信息？', function(retn){
+					if (retn){
+						$('#paramControl').maskit();
+						$.post($url('/rest/fmxParamConfigRest/delete.json'), {
+							paramId : row.paramId
+		  				}, function(result) {
+		  					$('#paramControl').maskit('unmask');
+							if (result.code == 0) {
+				  				$.messager.show({title:'提示信息',msg:'参数删除成功！',timeout:5000,showType:'slide'});
+								searchParam();
+		  					} else {
+		  						var msg = result.message || '操作失败！';
+		  						$.messager.alert("错误信息", msg,'error');
+		  					}
+		  				}, 'json');
+					}
+				});
+			}
+		}
+	
+		function saveParam(){
+			var url = $url('/rest/fmxParamConfigRest/save.json');
+			$('#fmParam').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'参数保存成功！',timeout:5000,showType:'slide'});
+		                $("#dlgParam").dialog("close");
+						searchParam();
+		        	}else{
+		        		var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+	</script>
+</body>
+</html>

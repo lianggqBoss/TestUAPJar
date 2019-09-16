@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>表名</label>
+		    		<input id="tableName" name="tableName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>操作类型</label>
+		    	    <input id="operAction" name="operAction" class="easyui-combobox" codetype="OPER_ACTION"/>
+		    	</li>
+		    </ul>
+			
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="sysDataControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchLog()">查询</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbDataLog" class="easyui-datagrid" data-options="maskit:'sysDataControl',
+					paramForm:'conditionForm',query:'cn.com.yict.framemax.frame.model.FmxSysDataLogModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'tableName',width:120">表名</th>
+							<th data-options="field:'operAction',width:140" codetype="OPER_ACTION">操作类型</th>
+							<th data-options="field:'tableDataPk',width:100">主键值</th>
+							<th data-options="field:'oldDataJson',width:160">旧值</th>
+							<th data-options="field:'newDataJson',width:160">新值</th>
+							<th data-options="field:'creator',width:100">操作人</th>
+							<th data-options="field:'createdTime',width:120,formatter:'date',format:'YYYY-MM-DD HH:mm:ss'">操作时间</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script>
+		function searchLog(){
+			$("#tbDataLog").datagrid('reload');
+		}
+	</script>
+</body>
+</html>

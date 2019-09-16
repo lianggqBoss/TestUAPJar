@@ -1,0 +1,181 @@
+
+body{
+	margin:0px;
+	visibility: hidden;
+}
+
+*{
+	font-size:12px;
+	font-family:微软雅黑,新宋体;
+}
+/*Tahoma,Verdana,*/
+/*
+[style*="font-size"] *{
+	font-size : inherit;
+}
+
+[style*="font-family"] *{
+	font-family : inherit;
+}
+*/
+
+/* used by HTML5 Placeholder jQuery Plugin (jquery.placeholder.js) */
+.placeholder {
+	color: #aaa !important;
+}
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+	color: #aaa;
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+	color: #aaa;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+	color: #aaa;
+}
+
+tr[datagrid-row-index], tr[node-id], .datagrid-header tr{
+	height:25px;
+}
+
+.datagrid-cell,
+.datagrid-cell-group,
+.datagrid-header-rownumber,
+.datagrid-cell-rownumber {
+  height: auto;
+}
+
+.combobox-item{
+	height:16px;
+	white-space: nowrap;
+    overflow: hidden;
+}
+
+input{
+	/*width:157px;*/
+	height:20px;
+	border:1px solid #95B8E7;
+	padding:0px;
+	margin:0px;
+}
+
+input.combo-text{
+	/*width:135px;*/
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+	width : 14px;
+	height : 14px;
+	margin : 0;
+	border: 0;
+	vertical-align:middle;
+}
+
+textarea{
+	border:1px solid #95B8E7;
+	padding:0px;
+	margin:0px;
+	resize: none;
+}
+
+input.datagrid-editable-input{
+	height:16px;
+	margin:0px;
+}
+
+input[disabled], textarea[disabled]{
+	background:#F5F5F5;
+}
+
+input[readonly], textarea[readonly]{
+	background:#FCFCFC;
+}
+
+input.combo-text[disabled]:not([_disabled]), input.combo-text[readonly]:not([_disabled]) {
+	background:#FFFFFF;
+}
+
+.panel {
+	overflow: visible;
+}
+
+.window {
+	overflow: visible;
+}
+
+.window-mask {
+	position: fixed;
+}
+
+/* .dialog-button{ */
+/* 	text-align:center; */
+/* } */
+
+.easyui-numberbox{
+	text-align:right;
+}
+
+.datagrid-editable table[align='right'] input.datagrid-editable-input{
+	text-align:right;
+}
+
+.datagrid-header-check,
+.datagrid-cell-check {
+	padding: 6px 0 0 0;
+}
+
+.datagrid-cell-modified{
+	color: #000;
+	background-color: #ffb;
+}
+
+.menu-sep {
+  height: 0px;
+}
+
+.clear-input{
+	background:url('../images/clear-input.png') no-repeat center center;
+	width:18px;
+	height:20px;
+	overflow:hidden;
+	display:inline-block;
+	vertical-align:top;
+	cursor:pointer;
+	opacity:0.6;
+	filter:alpha(opacity=60);
+}
+.clear-input:hover{
+	opacity:1.0;
+	filter:alpha(opacity=100);
+}
+
+.fmx-validate-required{
+  border-color: #DBDCE0;
+  background-color: #FBF8E2;
+  color: #000; 	
+}
+
+.maskit {
+	background: #eee;
+	position: fixed;
+	opacity:0.3;
+	z-index: 99999;
+}
+.maskit-msg {
+	position : fixed;
+	top: 30px;
+	right: 30px;
+	background: #fff url('../images/loading.gif') no-repeat scroll 5px center;	
+	padding: 10px 5px 10px 30px;
+	opacity:0.7;
+	border-width:2px;
+	border-style:solid;
+	border-color:#ddd;
+	z-index: 10000;
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+<script type="text/javascript" src="../../js/orgCls.js?version=20180115"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+			<ul class="conditionUl" id="orgClsUl">
+				<li>
+	    			<label>分类代码</label>
+	    			<input id="sOrgClsCode" name="orgClsCode" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+	    		<li>
+	    	    	<label>分类名称</label>
+	    	    	<input id="sOrgClsName" name="orgClsName" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+	    	</ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="orgClsControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchOrgCls()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newClsCode()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editClsCode()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteClsCode()">删除</a>						
+				<a href="#" class="easyui-linkbutton" onclick="newLeverNodes()">新增节点</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteNodes()">删除节点</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<div class="easyui-layout" style="width:100%;height:100%;">		
+				    <div data-options="region:'west',split:true" id="Major" style="width:25%;" title=" ">
+				     	<table id="tbOrgCls" class="easyui-datagrid" data-options="maskit:'orgClsControl',
+				     		paramForm:'conditionForm',idField:'orgClsId',pagination:false,pageSize:100,
+				     		query:'cn.com.yict.framemax.organization.model.FmxOrgClsModel'" >
+							<thead>
+								<tr>
+									<th data-options="field:'orgClsCode',width:100">分类代码</th>
+									<th data-options="field:'orgClsName',width:120">分类名称</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				    <div data-options="region:'center'" id="deptOrgTreeList" style="width:25%;">
+						<ul id="deptOrgTree" class="easyui-tree" data-options="dnd:true,query:'cn.com.yict.framemax.organization.model.FmxOrgModel',
+							idField:'orgId',textField:'orgName',parentField:'orgParentId',orderBy:'orgOrder'" 
+							 queryFields="[{fieldName:'orgClsId',fieldValue:'-1'}]"></ul> 
+				    </div>
+				    <div data-options="region:'east',border:false" id="orgClsMember" style="width:45%;padding-left:5px;">
+				    	<div class="easyui-layout" style="width:100%;height:100%">				    		
+				    		<div data-options="region:'center',border:false">
+				    			<table id="tbOrgClsMember" queryFields="[{fieldName:'orgId',fieldValue:'-1'},{fieldName:'empID',fieldStringValue:'-1',fieldType:'long'}]" 
+						    		 class="easyui-datagrid" data-options="singleSelect:false,toolbar:'#tb',query:'OrgMemberQuery',
+						    		 paramForm:'memberCondition',toolbar:'#memberbar'">
+									<thead>
+										<tr>
+											<th data-options="field:'empNumber',width:100">工号</th>
+											<th data-options="field:'empName',width:100">中文姓名</th>
+											<th data-options="field:'empSex',width:80" codetype="SEX">性别</th>
+											<th data-options="field:'empMail',width:120">邮箱</th>
+											<th data-options="field:'empStartDate',width:120,formatter:'date',format:'YYYY-MM-DD'">入职日期</th>											
+										</tr>
+									</thead>
+								</table>
+				    		</div>
+				    		<div id="memberbar" style="padding:5px;">
+				    			<form id="memberCondition">
+				    				<input id="searchName" name="empNumber,empName" operator="likeAnywhere" class="easyui-searchbox" data-options="searcher:doSearch"/>
+									<a href="#" class="easyui-linkbutton" onclick="saveClsMember()">保存成员</a>
+								</form>
+				    		</div>
+				    	</div>
+				    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="dlgOrgCls" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-keys'">
+		<form id="fmOrgCls" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-keys',novalidate:true">	
+			<table>
+				<tr>
+					<td><label>分类代码</label></td>
+					<td><input id="eOrgClsId" name="orgClsId" type="hidden" />					
+					<input name=sysVersion type="hidden" />
+					<input id="eOrgClsCode" name="orgClsCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入分类代码'" /></td>
+					<td><label>分类名称</label></td>
+					<td><input id="eOrgClsName" name="orgClsName" class="easyui-textbox" maxlength="200" data-options="required:true,missingMessage:'请输入分类名称'" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-keys">
+		<a href="#" class="easyui-linkbutton" onclick="saveClsCode()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgOrgCls').dialog('close')">取消</a>
+	</div>
+	<div id="dlgDeptOrg" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-dept'">
+		<form id="fmDeptOrg" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-dept',novalidate:true">
+			<table>
+				<tr>
+					<td><label>组织名称</label></td>
+					<td><input id="eClsId" name="orgClsId" type="hidden" />
+						<input id="eOrgParentId" name="orgParentId" type="hidden" />
+						<input name=sysVersion type="hidden" />
+						<input id="eOrgName" name="orgName" class="easyui-textbox" maxlength="100" data-options="required:true" /></td>
+					<td><label>组织代码</label></td>
+					<td><input id="eOrgCode" name="orgCode" class="easyui-textbox" maxlength="100" data-options="required:true" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-dept">
+		<a href="#" class="easyui-linkbutton" onclick="saveDeptOrg()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgDeptOrg').dialog('close')">取消</a>
+	</div>
+</body>
+</html>

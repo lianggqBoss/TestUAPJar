@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js?configs=framemax-security.hri.enable"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>登录账号</label>
+		    		<input id="account" name="account" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>用户名称</label>
+		    	    <input id="userName" name="userName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>AD账号</label>
+		    		<input id="centralAccount" name="centralAccount" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+		    	<li>
+		    		<label>工号</label>
+		    		<input id="userEmpNo" name="userEmpNo" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+		    	<li>
+		    		<label>是否锁定</label>
+		    		<input id="isLocked" name="isLocked" class="easyui-combobox" codetype="YES_NO"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="userBtnList" data-options="region:'north',border:false" height="auto">
+				<!-- 默认按钮default,回车默认触发 -->
+				<a href="#" class="easyui-linkbutton" onclick="searchUser()" default="default">查询</a>
+				<!-- 快捷键ctrl+n -->
+				<a href="#" class="easyui-linkbutton" onclick="newUser()" key='n'>新增</a>
+				<!-- 快捷键ctrl+e -->
+				<a href="#" class="easyui-linkbutton" onclick="editUser()" key='e'>修改</a>
+				<!-- 快捷键ctrl+d -->
+				<a href="#" class="easyui-linkbutton" onclick="deleteUser()" key="d">删除</a>
+				<!-- 快捷键ctrl+r -->
+				<a href="#" class="easyui-linkbutton" onclick="refPwd()" key="r" code="Reset_Password">重置密码</a>
+				
+				<a href="#" class="easyui-linkbutton" onclick="editUserLockeInfo()" key="L" >锁定/解锁用户</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbUser" class="easyui-datagrid" data-options="paramForm:'conditionForm',
+					maskit:'userBtnList',query:'cn.com.yict.framemax.frame.model.FmxUserModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'account',width:120">登录账号</th>
+							<th data-options="field:'userName',width:220">用户名称</th>
+							<th data-options="field:'centralAccount',width:120">AD账号</th>
+							<th data-options="field:'userEmpNo',width:120">工号</th>
+							<th data-options="field:'userEmail',width:150">联系邮箱</th>
+							<th data-options="field:'userPhone',width:120">联系电话</th>
+							<th data-options="field:'isLocked',width:100" codetype="YES_NO">是否锁定</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgUser" class="easyui-dialog fitem" data-options="closed:true,buttons:'#dlg-buttons',width:500">
+		<form id="fmUser" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<input id="eUserId" name="userId" type="hidden"/>
+			<input name="sysVersion" type="hidden"/>
+			<table style="padding-left:0px;">
+				<tr>
+					<td><label>登录账号</label></td>
+					<td>
+					<input id="eAccount" name="account" maxlength="50" class="easyui-textbox" data-options="required:true,missingMessage:'请输入登录账号'"/></td>
+					<td><label>用户名称</label></td>
+					<td><input id="eUserName" name="userName"  maxlength="100" class="easyui-textbox" data-options="required:true,missingMessage:'请输入用户名称'"/></td>
+				</tr>
+				<tr id="trCenteralAccount">
+					<td><label>AD账号</label></td>
+					<td><input id="eCentralAccount" maxlength="50" name="centralAccount" class="easyui-textbox"/></td>
+					<td><label>工号</label></td>
+					<td><input id="eUserEmpNo" maxlength="50" name="userEmpNo" class="easyui-textbox"/></td>
+				</tr>
+				<tr id="trUserPassword">
+					<td><label>登录密码</label></td>
+					<td><input id="ePassword" name="password" type="password" class="easyui-textbox" data-options="required:true,missingMessage:'请输入用户密码'" validType="passwordValidate"/></td>
+					<td><label>确认密码</label></td>
+					<td><input id="ePasswordRe" type="password" class="easyui-textbox" data-options="required:true,missingMessage:'请再次输入密码'" validType="eqPassword[document.getElementById('ePassword').value]"/></td>
+				</tr>
+				<tr>
+					<td><label>联系邮箱</label></td>
+					<td><input name="userEmail" maxlength="50" class="easyui-textbox" data-options="validType:'email'"/></td>
+					<td><label>联系电话</label></td>
+					<td><input name="userPhone" maxlength="20" class="easyui-textbox" /></td>
+				</tr>
+				<tr id="trForHri" style="display:none">
+					<td><label>所属公司</label></td>
+					<td><input id="eUserBuId" name="userBuId" class="easyui-combobox" codetype="USER_BU_ID" value='YICT' emptyItemEnable="true"/></td>
+					<td><label sendsmstd='1'>短信通知</label></td>
+					<td><div sendsmstd='1'><input name="isSendSms" class="easyui-combobox" codetype="YES_NO" value='N' style="width:152px;" emptyItemEnable="false"/></div></td>
+				</tr>				
+				<tr>
+					<td><label>是否锁定</label></td>
+					<td><input id="eIsLocked" name="isLocked" class="easyui-combobox" codetype="YES_NO" value='N' style="width:152px;" emptyItemEnable="false"/></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="saveUser()" default>保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgUser').dialog('close')">取消</a>
+	</div>
+	<div id="dlgRefPwd" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-RefPwd'">
+		<form id="fmRefPwd" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-RefPwd',novalidate:true">
+			<table>
+				<tr>
+					<td><label>登录密码</label></td>
+					<td><input id="refPassword" name="password" type="password" class="easyui-textbox" data-options="required:true,missingMessage:'请输入新的登录密码'" style="width:100%;" validType="rePasswordValidate"></td>
+				</tr>
+				<tr>
+					<td><label>确认密码</label></td>
+					<td><input id="passWordAgain" type="password" class="easyui-textbox" data-options="required:true,missingMessage:'请再次输入登录密码'" validType="eqPassword[document.getElementById('refPassword').value]" style="width:100%;"></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-RefPwd">
+		<a href="#" class="easyui-linkbutton" onclick="savePwd()" default>保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgRefPwd').dialog('close')">取消</a>
+	</div>
+	<script type="text/javascript">
+		var paramRemark="", paramValue="",$trUserPassword,hri = pageContext && pageContext.configs && 'true' ===  pageContext.configs['framemax-security.hri.enable'];
+		$(function(){
+			if(hri){
+				$("#trForHri").show();
+			}else{
+				$("#trForHri").detach();
+			}
+			$.post($url('/rest/fmxParamConfigRest/getParamConfigByCode.json'), {
+				paramCode : "password.validation"
+				}, function(result) {
+					if (result.code == 0) {
+						paramRemark=result.data.paramRemark;
+						paramValue=result.data.paramValue;
+					}
+				},
+			'json'); 
+			$.extend(true,$("#passWordAgain").textbox("options").rules, {   
+				eqPassword : { validator : function(value,param) {  
+					return value==param[0];   
+					},   
+					message : '密码不一致'   
+				}   
+			});
+			$.extend(true,$("#refPassword").textbox("options").rules, {   
+				rePasswordValidate : { validator : function(value) {
+					var flag=value.match(paramValue);
+					if(flag!=null)
+						return true; 
+					$("#refPassword").textbox("options").rules.rePasswordValidate.message=paramRemark;
+ 				}}   
+			});
+			$.extend(true,$("#ePassword").textbox("options").rules, {   
+				passwordValidate : { validator : function(value) {
+					var flag=value.match(paramValue);
+					if(flag!=null)
+						return true; 
+					if($("#ePassword").length>0)
+						$("#ePassword").textbox("options").rules.passwordValidate.message=paramRemark;
+ 				}}   
+			});
+			$trUserPassword = $('#trUserPassword').detach();
+		})
+
+		function searchUser(){
+			$("#tbUser").datagrid('query');
+		}
+	
+		function newUser(){
+			if(hri) {
+				$("[sendsmstd]",'#trForHri').show();
+			}
+			$('#dlgUser').dialog('open').dialog('setTitle','新增用户信息');
+			$('#eAccount').textbox('textbox').attr('readonly',false);
+			//新增用户时显示密码框
+			$trUserPassword.insertAfter('#trCenteralAccount');
+			//新增时多做一次初始化处理
+  			$("#fmUser").form({novalidate:true});
+			$("#ePasswordRe").textbox('setValue','');
+			$('#fmUser').form('reset');
+		}
+	
+		function editUser(){
+			if(hri) {
+				$("[sendsmstd]",'#trForHri').hide();
+			}			
+			var row = $('#tbUser').datagrid('getSelected');
+			if (row){
+				$('#eAccount').textbox('textbox').attr('readonly',true);
+				//修改用户信息时隐藏密码框
+				$trUserPassword.detach();
+				$('#dlgUser').dialog('open').dialog('setTitle','修改用户信息');
+				$('#fmUser').form('load',row);
+				$("#ePasswordRe").textbox('setValue',row.password);
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function editUserLockeInfo() {
+			var row = $('#tbUser').datagrid('getSelected');
+			if (row){
+				var oper = row.isLocked == 'Y' ? '解锁' : '锁定';
+				$.messager.confirm("提示","是否要"+oper+"当前用户？",function(ret){
+					if(ret){
+						var data = $.extend({},row);
+						delete data.password;
+						delete data.password;
+						delete data.passwordChangeDate;
+						data.isLocked = row.isLocked == 'Y' ? 'N' : 'Y';
+						var url = $url('/rest/fmxUserRest/save.json');
+						$('#userBtnList').maskit();
+						$.post(url,data,function(ret){
+							$('#userBtnList').maskit('unmask');
+							if(ret && ret.code == 0) {
+								$.messager.show({title:'提示信息',msg:'用户'+oper+'成功！',timeout:5000,showType:'slide'});
+				    			$("#tbUser").datagrid('query');								
+							}else{
+								var msg = ret.message || '操作失败！';
+	      						$.messager.alert("错误信息", msg,'error');								
+							}
+						},'json');
+					}
+				});				
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}			
+		}
+		
+		function deleteUser(){
+			var row = $('#tbUser').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$.messager.confirm('删除用户', '确定删除选中的用户信息？', function(retn){
+					if (retn){
+					    $('#userBtnList').maskit();
+						$.post($url('/rest/fmxUserRest/delete.json'), {
+							userId : row.userId
+	      				}, function(result) {
+	      					$('#userBtnList').maskit('unmask');
+      						if (result.code == 0) {
+      			  				$.messager.show({title:'提示信息',msg:'用户删除成功！',timeout:5000,showType:'slide'});
+      			  				$("#tbUser").datagrid('deleteRow',$("#tbUser").datagrid('getRowIndex',row));
+	      					} else {
+	      						var msg = result.message || '操作失败！';
+	      						$.messager.alert("错误信息", msg,'error');
+	      					}
+	      				}, 'json');
+					}
+				});
+			}
+		}
+		
+		function saveUser(){
+			var url = $url('/rest/fmxUserRest/save.json');
+			$('#fmUser').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'用户保存成功！',timeout:5000,showType:'slide'});
+		                $("#dlgUser").dialog("close");
+		    			$("#tbUser").datagrid('query');
+		                /* var row = $('#tbUser').datagrid('getSelected');
+		                if(row&&row.userId!=null){
+			                $('#tbUser').datagrid('updateRow',{index:$("#tbUser").datagrid('getRowIndex',row),row:data.data});		                	
+		                }else{
+			                $('#tbUser').datagrid('appendRow',data.data);		                	
+		                } */
+		        	}else{
+						var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+		
+		function refPwd(){
+			var row=$('#tbUser').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$("#fmRefPwd").form("clear");
+				$('#dlgRefPwd').dialog('open').dialog('setTitle','密码重置');
+			}
+		}
+		
+		function savePwd(){
+			var url = $url('/rest/fmxUserRest/refPassWord.json');
+			$('#fmRefPwd').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function(param) {
+		  			param.userId=$('#tbUser').datagrid('getSelected').userId;
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'重置密码成功！',timeout:5000,showType:'slide'});
+		                $("#dlgRefPwd").dialog("close");
+		        	}else{
+						var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+	</script>
+</body>
+</html>

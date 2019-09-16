@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>流程编码</label>
+		    		<input id="processCode" name="processCode" class="easyui-textbox" operator="ilikeStart"/>
+	    		</li>
+		    	<li>
+		    		<label>流程名称</label>
+		    		<input id="processName" name="processName" class="easyui-textbox" operator="ilikeStart"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="controlBtnList" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchProcess()" default="default">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="addWorkflow()" default="default">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editWorkflow()" default="default">编辑</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteWorkflow()" default="default">删除</a>
+				<a href="#" class="easyui-linkbutton" onclick="designForm()" default="default">设计表单</a>
+				<a href="#" class="easyui-linkbutton" onclick="releaseProcess()" default="default">发布</a>
+				<a href="#" class="easyui-linkbutton" onclick="importProcess()" default="default">导入</a>
+				<a href="#" class="easyui-linkbutton" onclick="exportProcess()" default="default">导出</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbProcess" class="easyui-datagrid" data-options="paramForm:'conditionForm',fitColumns:false,maskit:'controlBtnList',query:'cn.com.yict.framemax.frame.activiti.model.FmxProcessModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'processCode'" width="150">流程编码</th>
+							<th data-options="field:'processName'" width="200">流程名称</th>
+							<th data-options="field:'sysVersion'" width="80">版本号</th>
+							<th data-options="field:'modifier'" width="120">修改人</th>
+							<th data-options="field:'modifiedTime'" width="140" formatter="datetime">修改日期</th>
+							<th data-options="field:'creator'" width="120">创建人</th>
+							<th data-options="field:'createdTime'" width="140" formatter="datetime">创建日期</th>
+							<th data-options="field:'releaseDate'" width="140" formatter="datetime">发布日期</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	
+	<div id="dlgProcessDesign" class="fitem easyui-dialog" data-options="closed:true" style="width:80%;height:90%;max-width:980px;max-height:680px;">
+		<iframe scrolling='auto' pagekey='processDesign_iframe' id="processDesignIframe" frameborder='0' style='width:100%;height:98%' marginwidth='0px' marginheight='0px'></iframe>
+	</div>
+	
+	<div id="dlgFormDesign" class="fitem easyui-dialog" data-options="closed:true" style="width:80%;height:90%;max-width:990px;max-height:600px;">
+		<iframe scrolling='auto' pagekey='formDesign_iframe' id="formDesignIframe" frameborder='0' style='width:100%;height:98%' marginwidth='0px' marginheight='0px'></iframe>
+	</div>
+	
+	<div id="dlgImportFile" class="fitem easyui-dialog" data-options="closed:true" style="width:500px;height:150px;">
+		<form id="formImport" method="post" direction="right" class="frmContent easyui-form" enctype="multipart/form-data" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>上传文件</label></td>
+					<td colspan="3"><input class="easyui-filebox" name="importFile" title="上传文件" style="width:341px"/></td>
+				</tr>
+			</table>
+		</form>
+		<div id="dlg-buttons">
+			<a href="#" class="easyui-linkbutton" onclick="saveImport()">导入</a>
+			<a href="#" class="easyui-linkbutton" onclick="$('#dlgImportFile').dialog('close');">取消</a>
+		</div>	
+	</div>
+	
+	<script type="text/javascript">
+		function searchProcess(){
+			$('#tbProcess').datagrid('reload');
+		}
+	
+		function addWorkflow(){
+			$("#processDesignIframe").attr('src','activitiManagerEdit.html');
+			$('#dlgProcessDesign').dialog('open').dialog('setTitle','新增流程信息');
+		}
+		
+		function editWorkflow(){
+			var row = $('#tbProcess').datagrid('getSelected');
+			if(row){
+				$("#processDesignIframe").attr('src','activitiManagerEdit.html?processCode='+row.processCode);
+				$('#dlgProcessDesign').dialog('open').dialog('setTitle','编辑流程信息');
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function deleteWorkflow(){
+			var row = $('#tbProcess').datagrid('getSelected');
+			if(row){
+				$.messager.confirm('删除流程', '确定删除流程[' + row.processName + ']？', function(retn){
+					if (retn){
+						$.post($url('/rest/fmxProcessRest/deleteProcessByProcessID.json'),{
+							processId : row.processId
+						},function(result){
+							if (result.code == 0) {
+								searchProcess();
+							} else {
+								var msg = result.message || '操作失败！';
+								$.messager.alert("错误信息", msg,'error');
+							}
+						},'json');
+					}
+				});
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function designForm(){
+			var row = $('#tbProcess').datagrid('getSelected');
+			if(row){
+				$("#formDesignIframe").attr('src','formDesignFieldEdit.html?processCode='+row.processCode);
+				$('#dlgFormDesign').dialog('open').dialog('setTitle','表单设计');
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function closeDialog(){
+			$('.easyui-dialog').dialog('close');
+		}
+		
+		function GetQueryString(str,LocString){
+		 	var rs=new RegExp("[/?&]"+str+"=([^&]*)(&|$)","gi").exec(LocString),tmp;
+		 	if(tmp=rs)return tmp[1];
+		 	return "";
+		}
+		
+		function releaseProcess(){
+			var row = $('#tbProcess').datagrid('getSelected');
+			if(row){
+				$('#controlBtnList').maskit();
+				$.post($url('/rest/fmxProcessRest/releaseProcess.json'),{
+					processId : row.processId
+				},function(result){
+					$('#controlBtnList').maskit('unmask');
+					if (result.code == 0) {
+						searchProcess();
+					} else {
+						var msg = result.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+					}
+				},'json');
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		
+		function exportProcess(){
+			var row = $('#tbProcess').datagrid('getSelected');
+			if(row){
+				javascript:open($url('/rest/fmxProcessRest/exportProcess.json')+'?processCode='+row.processCode);
+			}
+		}
+		
+		function importProcess(){
+			$('#formImport').form('clear');
+			$('#dlgImportFile').dialog('open').dialog('setTitle','导入流程');;
+		}
+		
+		function saveImport(){
+			$('#controlBtnList').maskit();
+			$('#formImport').form('submit',{
+				contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+				url : $url('/rest/fmxProcessRest/importProcess.json'),
+		  		onSubmit : function() {
+					$('#controlBtnList').maskit('unmask');
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+				success : function(result) {
+					$('#controlBtnList').maskit('unmask');
+					result = JSON.parse(result);
+					if (result.code == 0) {
+						searchProcess();
+						$('#dlgImportFile').dialog('close');
+					} else {
+						var msg = result.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+					}
+				}
+			});
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+			<ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>工号</label>
+		    		<input id="empNumber" name="empNumber" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>姓名</label>
+		    	    <input id="empName" name="empName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>性别</label>
+		    		<input id="empSex" name="empSex" class="easyui-combobox" codetype="SEX"/>
+	    		</li>
+		    	<li>
+		    		<label>入职日期</label>
+		    		<input id="empStartDateFrom" name="empStartDate" class="easyui-datebox" dataType="Date" operator="dateBegin"/>
+	    		</li>
+		    	<li>
+		    		<label>至</label>
+		    		<input id="empStartDateEnd" name="empStartDate" class="easyui-datebox" dataType="Date" operator="dateEnd"/>
+	    		</li>
+		    </ul>
+		</form>
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true,border:false">
+			<div id="userLevelControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchUser()">查询</a>
+			</div>
+			<div data-options="region:'west',border:false" style="width:50%;padding-right:10px;">
+				<table id="userDataGrid" class="easyui-datagrid" data-options="paramForm:'conditionForm',query:'EmpInfoQuery'">
+					<thead>
+						<tr>
+							<th data-options="field:'empNumber',width:'20%'">工号</th>
+							<th data-options="field:'empName',width:'30%'">姓名</th>
+							<th data-options="field:'empSex',width:'15%'" codetype="SEX">性别</th>
+							<th data-options="field:'empMail',width:'30%'">邮箱</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="userLevelDataGrid" queryFields="[{fieldName:'empId',fieldValue:'-1'}]" 
+					class="easyui-datagrid" data-options="maskit:'userLevelControl',paramForm:'empCondition',
+					toolbar:'#userLevelTool',singleSelect:false,query:'UserLevelQuery'">
+					<thead>
+						<tr>
+							<th data-options="field:'empNumber',width:'20%'">工号</th>
+							<th data-options="field:'empName',width:'30%'">姓名</th>
+							<th data-options="field:'empSex',width:'15%'" codetype="SEX">性别</th>
+							<th data-options="field:'empMail',width:'30%'">邮箱</th>
+						</tr>
+					</thead>
+				</table>
+				<div id="userLevelTool" style="padding:5px;">
+					<form id="empCondition">
+						<input id="searchName" name="empNumber,empName" operator="likeAnywhere" class="easyui-searchbox" data-options="searcher:doSearch"/>
+						<a href="#" class="easyui-linkbutton" onclick="saveUserLevel()">保存</a>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		var rowData=[];
+	
+		$(function(){
+			$.extend(true,$("#userDataGrid").datagrid("options"),{
+				onCheck:function(index, row){
+			    	var empId = row["empId"],userLevel = $("#userLevelDataGrid");
+			    	var options = userLevel.datagrid("options");
+			    	options.queryFields = [{fieldName:'empId',fieldStringValue:empId,fieldType:'long'}];
+			    	userLevel.datagrid('reload');
+			    }
+			});
+			$.extend(true,$("#userLevelDataGrid").datagrid("options"),{
+				onSelect:function(index, row){
+					checkData(row,1);
+				},
+				onUnselect:function(index, row){
+					checkData(row,0);
+				},
+				onSelectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],1);
+					}
+				},
+				onUnselectAll:function(rows){
+					for(var i=0;i<rows.length;i++){
+						checkData(rows[i],0);
+					}
+				}
+			});
+		})
+		
+		function doSearch(){
+	    	$("#userLevelDataGrid").datagrid('reload');
+		}
+	
+		function checkData(row,tagVar){
+			var selectData={"checked":tagVar,"empId":row.empId,"userLvlId":row.userLvlId,"puserId":row.pUserId};
+			var rowFlag=false;
+			for(var i=0;i<rowData.length;i++){
+				if(row.empId==rowData[i].empId&&row.pUserId==rowData[i].puserId){
+					rowData[i].checked=tagVar;
+					rowFlag=true;
+				}
+			}
+			if(!rowFlag){
+				rowData.push(selectData);
+			}
+		}
+	
+		function searchUser(){
+			$("#userDataGrid").datagrid('reload');
+			$("#searchName").searchbox('clear');
+		}
+	
+		function saveUserLevel(){
+			var url=$url('/rest/fmxUserLevelRest/save.json');
+			$postJSON(url,rowData,function(data){
+				if(data.code>=0){
+					rowData=[];
+	  				$.messager.show({title:'提示信息',msg:'用户上下级保存成功！',timeout:5000,showType:'slide'});
+				}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+		    	}
+			});
+		}
+	</script>
+</body>
+</html>

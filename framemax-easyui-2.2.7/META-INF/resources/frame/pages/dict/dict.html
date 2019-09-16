@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="../../../pageContext.js"></script>
+<script type="text/javascript" src="../../js/dict.js?version=20161201"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" " >
+		<form id="conditionForm">
+			<ul class="conditionUl" id="dictTypeUl">
+				<li>
+		    		<label>字典标识</label>
+		    		<input id="dictTypeCode" name="dictTypeCode" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>字典名称</label>
+		    	    <input id="dictTypeName" name="dictTypeName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    		<label>启用状态</label>
+		    		<input name="dictTypeStatus" class="easyui-combobox" codetype="TRUE_FALSE"/>
+		    	</li>
+		    	<li>
+		    		<label>备注</label>
+		    		<input id="dictTypeRemark" name="dictTypeRemark" class="easyui-textbox" operator="likeAnywhere"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="dictControl" height="auto" data-options="region:'north',border:false">
+				<a href="#" class="easyui-linkbutton" onclick="LoadTypeData()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newDictType()">新增类型</a>
+				<a href="#" class="easyui-linkbutton" onclick="editDictType()">修改类型</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteDictType()">删除类型</a>				
+				<a href="#" class="easyui-linkbutton" onclick="newDict()">新增字典</a>
+				<a href="#" class="easyui-linkbutton" onclick="editDict()">修改字典</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteDict()">删除字典</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<div class="easyui-layout" data-options="fit:true">
+					<div data-options="region:'west',border:false" style="width:45%;padding-right:10px;">
+						<table id="dictionariesType" class="easyui-datagrid" data-options="maskit:'dictControl',
+							query:'cn.com.yict.framemax.frame.model.FmxDictTypeModel',paramForm:'conditionForm'">
+							<thead>
+								<tr>
+									<th data-options="field:'dictTypeCode',width:120">字典标识</th>
+									<th data-options="field:'dictTypeName',width:140">字典名称</th>
+									<th data-options="field:'dictTypeStatus',width:60" codetype="TRUE_FALSE">状态</th>							
+									<th data-options="field:'dictTypeRemark',width:160">备注</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div data-options="region:'center',border:false">
+						<table id="dictionaries"  class="easyui-datagrid"
+							data-options="query:'cn.com.yict.framemax.frame.model.FmxDictModel'">
+							<thead>
+								<tr>
+									<th data-options="field:'dictCode',width:120">字典对照码</th>
+									<th data-options="field:'dictCnName',width:140">字典对照值CN</th>
+									<th data-options="field:'dictEnName',width:120">字典对照值EN</th>
+									<th data-options="field:'dictOrder',width:100">排序号</th>
+									<th data-options="field:'dictStatus',width:60" codetype="TRUE_FALSE">状态</th>
+									<th data-options="field:'dictRemark',width:150">备注</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="dlgDictType" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-Type'">
+		<form id="fmType" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-Type',novalidate:true">
+			<table>
+				<tr>
+					<td><label>字典标识</label></td>
+					<td><input id="eDictTypeId" name=dictTypeId type="hidden">
+					<input name=sysVersion type="hidden">
+					<input id="eDictTypeCode" name="dictTypeCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入字典标识'"></td>
+					<td><label>字典名称</label></td>
+					<td><input id="eDictTypeName" name="dictTypeName" class="easyui-textbox" maxlength="100" data-options="required:true,missingMessage:'请输入字典名称'"></td>
+				</tr>
+				<tr>
+					<td><label>状态</label></td>
+					<td colspan="3"><input id="eDictTypeStatus" name="dictTypeStatus" class="easyui-combobox" codetype="TRUE_FALSE" style="width:100%;" emptyItemEnable="false"/></td>
+				</tr>
+				<tr>
+					<td><label>备注</label></td>
+					<td colspan="3"><input id="eDictTypeRemark" name="dictTypeRemark" class="easyui-textbox" maxlength="500" data-options="multiline:true" style="width:100%; height:50px;"/></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-Type">
+		<a href="#" class="easyui-linkbutton" onclick="saveDictType()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgDictType').dialog('close')">取消</a>
+	</div>
+	<div id="dlgDict" class="fitem easyui-dialog" data-options="buttons:'#dlg-buttons',closed:true">
+		<form id="fm" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>字典对照码</label></td>
+					<td><input id="eDictId" name=dictId type="hidden">
+					<input id="eParentCode" name=parentCode type="hidden">
+					<input name=sysVersion type="hidden">
+					<input id="eDictCode" name="dictCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入字典对照码'" ></td>
+					<td><label>字典对照值CN</label></td>
+					<td><input id="eDictCnName" name="dictCnName" class="easyui-textbox" maxlength="100" data-options="required:true,missingMessage:'请输入字典对照值CN'" ></td>
+				</tr>
+				<tr>
+					<td><label>字典对照值EN</label></td>
+					<td><input id="eDictEnName" name="dictEnName" class="easyui-textbox" maxlength="100"/></td>
+					<td><label>排序号</label></td>
+					<td><input id="eDictOrderEdit" name="dictOrder" class="easyui-numberbox" data-options="max:999999"/></td>
+				</tr>
+				<tr>
+					<td><label>状态</label></td>
+					<td colspan="3"><input id="eDictStatusEdit" name="dictStatus" class="easyui-combobox" codetype="TRUE_FALSE" style="width:100%;" emptyItemEnable="false"/></td>
+				</tr>
+				<tr>
+					<td><label>备注</label></td>
+					<td colspan="3"><input id="eDictRemark" name="dictRemark" class="easyui-textbox" maxlength="500" data-options="multiline:true" style="width:100%; height:50px;"/></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="saveDict()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgDict').dialog('close')">取消</a>
+	</div>
+</body>
+</html>

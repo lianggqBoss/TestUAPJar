@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>流程名称</label>
+		    		<input id="processCode" name="processCode" class="easyui-combobox" codetype="ProcessList"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="controlBtnList" data-options="region:'north',border:false" height="auto">
+				<!-- 默认按钮default,回车默认触发 -->
+				<a href="#" class="easyui-linkbutton" onclick="searchApproveTask()" default="default">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="approveTask()" default="default">审批</a>
+				<a href="#" class="easyui-linkbutton" onclick="showTaskHistory()" default="default">审批记录</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbApproveProcess" class="easyui-datagrid" data-options="paramForm:'conditionForm',fitColumns:false,maskit:'controlBtnList',query:'bean:fmxInProgressTaskListQueryDataProvider'">
+					<thead>
+						<tr>
+							<th data-options="field:'processCode'" codeType="ProcessList" width="20%">流程名称</th>
+							<th data-options="field:'taskName'" width="20%">任务名称</th>
+							<th data-options="field:'taskCreateTime'" width="10%" formatter="date" format="YYYY-MM-DD">任务申请日期</th>
+							<th data-options="field:'createdTime'" width="10%" formatter="date" format="YYYY-MM-DD">申请日期</th>
+							<th data-options="field:'creator'" width="10%" codetype="UserAccount">申请人</th>
+							<th data-options="field:'applyRemark'" width="28%">申请备注</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgTaskHistory" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-btn-Task'" style="width:80%;height:80%">
+		<div class="easyui-layout" data-options="fit:true">
+			<div data-options="region:'north',border:false" height="auto" >
+				<form id="historyConditionForm" style="margin-top:10px;">
+				    <ul class="conditionUl" id="conditionUl">
+				    	<li>
+				    		<label>流程名称</label>
+				    		<input name="processCode" class="easyui-combobox" codetype="ProcessList"/>
+			    		</li>
+			    		<li>
+				    		<label>任务开始时间</label>
+				    		<input name="createTimeFrom" class="easyui-datebox"/>
+			    		</li>
+			    		<li>
+				    		<label>至</label>
+				    		<input name="createTimeTo" class="easyui-datebox"/>
+			    		</li>
+			    		<li>
+				    		<a href="#" class="easyui-linkbutton" onclick="searchApproveTaskHistory()">查询</a>
+			    		</li>
+				    </ul>
+				</form>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbTaskHistory" class="easyui-datagrid" data-options="toolbar:'#historyControl',checkbox:false,paramForm:'historyConditionForm',fitColumns:false,maskit:'controlBtnList',query:'bean:fmxCurrentUserTaskDataProvider'">
+					<thead>
+						<tr>
+							<th data-options="field:'processCode'" codeType="ProcessList" width="200" sortable="false">流程名称</th>
+							<th data-options="field:'taskName'" width="200" sortable="false">任务名称</th>
+							<th data-options="field:'createTime'" width="140" formatter="date" format="YYYY-MM-DD hh:mm:ss" sortable="false">任务开始时间</th>
+							<th data-options="field:'endTime'" width="140" formatter="date" format="YYYY-MM-DD hh:mm:ss" sortable="false">任务结束时间</th>
+							<th data-options="field:'vars'" width="200" formatter="getRequester" sortable="false">申请人</th>
+							<th data-options="field:'applyRemark'" width="200" formatter="viewRequest" sortable="false">查看</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript">
+var taskCode;
+$(document).ready(function() {
+	
+});
+
+function searchApproveTask(){
+	$('#tbApproveProcess').datagrid('reload');
+}
+
+function approveTask(){
+	var row = $('#tbApproveProcess').datagrid('getSelected');
+	if(row){
+		taskCode = row.taskCode;
+		loadProcessForm(row.processCode, row.processRuId);
+	}else{
+		$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+	}
+}
+
+function showTaskHistory(){
+	$('#dlgTaskHistory').dialog('open').dialog('setTitle','查看历史审批信息');
+	$('#tbTaskHistory').datagrid('reload');
+}
+
+function searchApproveTaskHistory(){
+	$('#tbTaskHistory').datagrid('reload');
+}
+var candidateUsersObj;
+function loadProcessForm(processCode, processRuId){
+	if(processCode != null && processCode != ''){
+		$.post($url('/rest/fmxProcessFormRest/getFormDetailByProcessCode.json'),{
+			processCode : processCode,
+			taskCode : taskCode
+		},function(result){
+			if (result.code == 0) {
+				if(result.data){
+					if(result.data.taskItem){
+						candidateUsersObj = JSON.parse(result.data.taskItem.candidateUsers);
+						if(candidateUsersObj){
+							for(var i=0; i<candidateUsersObj.length;i++){
+								var fieldValue = candidateUsersObj[i]['fieldValue'];
+								if(top.pageContext[fieldValue]!=null){
+									candidateUsersObj[i]['fieldValue'] = top.pageContext[fieldValue];
+								}
+							}
+						}
+					}
+					loadFormDetail(result.data, processRuId);
+				}
+			} else {
+				var msg = result.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+			}
+		},'json');
+	}else{
+		$.messager.alert("错误信息", '没有找到对应的流程信息','error');
+	}
+}
+
+function loadProcessFormDetail(processRuId){
+	if(processRuId != null && processRuId != ''){
+		$.post($url('/rest/fmxProcessRuFormDetailRest/getDetailByProcessRuId.json'),{
+			processRuId : processRuId
+		},function(result){
+			if (result.code == 0) {
+				var data = result.data;
+				var detail = {};
+				for(var i=0; i< data.length; i++){
+					for(var key in data[i]){
+						detail[data[i].processColumnName] = data[i].processColumnValue;
+					}
+				}
+				$('#fmForm').form('load', detail);
+				if($('#approveUser').data('combogrid')){
+					setTimeout(function(){
+						$('#approveUser').combogrid('grid').datagrid('options').queryFields = candidateUsersObj;
+						$('#approveUser').combogrid('grid').datagrid('reload');
+					},1000);
+				}
+			} else {
+				var msg = result.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+			}
+		},'json');
+	}else{
+		$.messager.alert("错误信息", '没有找到对应的审批详情','error');
+	}
+}
+
+var $dlg;
+var $button;
+function loadFormDetail(formInfo, processRuId){
+	if(!formInfo){
+		$.messager.alert("错误信息", '没有找到对应的表单信息','error');
+		return;
+	}
+	if($dlg != null)
+		$dlg.detach();
+	$dlg = $("<div style='display:none'><form id='fmForm' class='easyui-form' method='post' enctype='multipart/form-data' data-options='novalidate:true'><table id='tbForm' style='border-collapse:separate;border-spacing:0px 10px;vertical-align:middle;margin:0 15px;'></table></form></div>").appendTo("body");
+	if($button != null)
+		$button.detach();
+	$button = $("<div id='dlg-btn-Request'><a href='#' class='easyui-linkbutton' onclick='approveRequest(true)'>通过</a><a href='#' class='easyui-linkbutton' onclick='approveRequest(false)'>驳回</a><a href='#' class='easyui-linkbutton' onclick='javascript:closeDialog()'>取消</a></div>").appendTo("body");
+	$.parser.parse($button);
+	$dlg.dialog({
+		closed : true,
+		title : formInfo.formTitle + '-审批',
+		width : formInfo.formWidth,
+		height : formInfo.formHeight + 150,
+		buttons : '#dlg-btn-Request'
+	});
+	
+	var $tr;
+	for(var index = 0; index < formInfo.columnList.length; index++){
+		var column = formInfo.columnList[index];
+		var $input = $('<input />');
+		$input.attr('class',column.columnType);
+		$input.attr('name',column.columnName);
+		$input.attr('label',column.columnLabel);
+		$input.attr('readonly', true);
+		
+		var newAttrList = formInfo.attrList.filter(function (val, idx ){ return val.columnName == column.columnName ? 1 : 0});
+		var attrOptions = '';
+		for(var i = 0; i < newAttrList.length; i++){
+			var attr = newAttrList[i];
+			if(attr.attrValue != null && attr.attrValue != ''){
+				if('width' == attr.attrName || 'height' == attr.attrName){
+					attrOptions += (attrOptions == '') ? (attr.attrName + ':' + attr.attrValue) : (',' + attr.attrName + ':' + attr.attrValue);
+				}else{
+					$input.attr(attr.attrName, attr.attrValue);
+				}
+			}
+		}
+		if(attrOptions != ''){
+			$input.attr('data-options', attrOptions);
+		}
+		var columnColspan = column.columnColspan == null ? 1 : Number(column.columnColspan);
+		if(index == 0 || columnCount % Number(formInfo.formColumnCount) == 0){
+			$tr = $('<tr></tr>'); 
+			$tr.appendTo($('#tbForm'));
+			columnCount = 0;
+		}
+		columnCount += columnColspan;
+		var $td = $('<td></td>');
+		$td.attr('style', 'text-align:left');
+		if(columnColspan > 0){
+			$td.attr('colspan', columnColspan);
+		}
+		$input.appendTo($td);
+		$td.appendTo($tr);
+	}
+	
+	$.parser.parse($dlg);
+	
+	var $approveUserTr = $('<tr><td><input id="approveUser" label="审批人" class="easyui-combogrid" codetype="ApproveUserList"/></td></tr>');
+	$approveUserTr.appendTo($('#tbForm'));
+	$.parser.parse($approveUserTr);
+	
+	var $remarkTr = $('<tr><td colspan=' + formInfo.formColumnCount + ' style="text-align:left"><label>审批备注</label></td></tr><tr><td colspan=' + formInfo.formColumnCount + '><input id="applyRemark" name="applyRemark" class="easyui-textbox" multiline="true" style="width:100%;height:80px" /></td></tr>')
+	$remarkTr.appendTo($('#tbForm'));
+	$.parser.parse($remarkTr);
+	$dlg.dialog("open");
+	setTimeout(function(){
+		loadProcessFormDetail(processRuId);
+	},500);
+}
+
+function closeDialog(){
+	if($dlg != null){
+		$dlg.dialog("close");
+	}
+}
+
+function approveRequest(applyStatus){
+	var row = $('#tbApproveProcess').datagrid('getSelected');
+	var applyRemark = $('#applyRemark').textbox('getValue');
+	$('#dlg-btn-Request').maskit();
+	$.post($url('/rest/fmxProcessRuFormRest/approvaTask.json'),{
+		taskId : row.taskId,
+		approve : applyStatus,
+		remark : applyRemark,
+		approveUser : $('#approveUser').combogrid('getValue')
+	},function(result){
+		$('#dlg-btn-Request').maskit('unmask');
+		if (result.code == 0) {
+			closeDialog();
+			$.messager.show({title:'Message',msg:'审批成功！',timeout:5000,showType:'slide'});
+			searchApproveTask();
+		} else {
+			var msg = result.message || '操作失败！';
+			$.messager.alert("错误信息", msg,'error');
+		}
+	},'json');
+}
+
+function getRequester(value,row,index){
+	if (value){
+		return value.requestName;
+	} else {
+		return value;
+	}
+}
+
+function viewRequest(value,row,index){
+	return "<a href='#' onclick='showDetails("+index+")' >详情</a>";
+}
+
+function showDetails(index){
+	var row = $('#tbTaskHistory').datagrid('getRows')[index];
+	if(row && row.vars){
+		$.post($url('/rest/fmxProcessFormRest/getFormDetailByProcessCode.json'),{
+			processCode : row.processCode
+		},function(result){
+			if (result.code == 0) {
+				viewDialog(result.data, row.vars.processRuId);
+			} else {
+				var msg = result.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+			}
+		},'json');
+	}
+}
+
+function viewDialog(formInfo, processRuId){
+	if(!formInfo){
+		$.messager.alert("错误信息", '没有找到对应的表单信息','error');
+		return;
+	}
+	if($dlg != null)
+		$dlg.detach();
+	$dlg = $("<div style='display:none'><form id='fmForm' class='easyui-form' method='post' enctype='multipart/form-data' data-options='novalidate:true'><table id='tbForm' style='border-collapse:separate;border-spacing:0px 10px;vertical-align:middle;margin:0 15px;'></table></form></div>").appendTo("body");
+	$dlg.dialog({
+		closed : true,
+		title : formInfo.formTitle + '-查看',
+		width : formInfo.formWidth,
+		height : formInfo.formHeight,
+	});
+	
+	var $tr;
+	for(var index = 0; index < formInfo.columnList.length; index++){
+		var column = formInfo.columnList[index];
+		var $input = $('<input />');
+		$input.attr('class',column.columnType);
+		$input.attr('name',column.columnName);
+		$input.attr('label',column.columnLabel);
+		$input.attr('readonly', true);
+		
+		var newAttrList = formInfo.attrList.filter(function (val, idx ){ return val.columnName == column.columnName ? 1 : 0});
+		var attrOptions = '';
+		for(var i = 0; i < newAttrList.length; i++){
+			var attr = newAttrList[i];
+			if(attr.attrValue != null && attr.attrValue != ''){
+				if('width' == attr.attrName || 'height' == attr.attrName){
+					attrOptions += attrOptions == '' ? (attr.attrName + ':' + attr.attrValue) : (',' + attr.attrName + ':' + attr.attrValue);
+				}else{
+					$input.attr(attr.attrName, attr.attrValue);
+				}
+			}
+		}
+		if(attrOptions != ''){
+			$input.attr('data-options', attrOptions);
+		}
+		var columnColspan = column.columnColspan == null ? 1 : Number(column.columnColspan);
+		if(index == 0 || columnCount % Number(formInfo.formColumnCount) == 0){
+			$tr = $('<tr></tr>'); 
+			$tr.appendTo($('#tbForm'));
+			columnCount = 0;
+		}
+		columnCount += columnColspan;
+		var $td = $('<td></td>');
+		$td.attr('style', 'text-align:left');
+		if(columnColspan > 0){
+			$td.attr('colspan', columnColspan);
+		}
+		$input.appendTo($td);
+		$td.appendTo($tr);
+	}
+	
+	$.parser.parse($dlg);
+	$dlg.dialog("open");
+	loadProcessFormDetail(processRuId);
+}
+</script>
+</html>

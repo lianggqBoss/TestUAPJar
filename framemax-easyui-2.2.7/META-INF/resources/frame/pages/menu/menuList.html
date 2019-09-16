@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div data-options="region:'north',border:false" height="auto" title=" ">
+		<div id="menuControl" style="line-height:35px;margin-bottom:10px;">
+			<a href="#" class="easyui-linkbutton" onclick="newMenu()">新增</a>
+			<a href="#" class="easyui-linkbutton" onclick="deleteMenu()">删除</a>
+			<a href="#" class="easyui-linkbutton" onclick="saveMenu()">保存</a>
+		</div>
+	</div>
+	<div data-options="region:'west'" id="menuTreeList" style="width:280px;">				
+		<ul id="menuTree" style="width:100%" data-options="dnd:true,query:'cn.com.yict.framemax.frame.model.FmxMenuModel',
+			idField:'menuCode',textField:'menuTitle',parentField:'parentCode',orderBy:'menuOrder'"></ul> 
+    </div> 
+    <div data-options="region:'center'" id="Main" style="padding:5px;" class="fitem">
+		<form id="fm" method="post" class="easyui-form" data-options="maskit:'menuControl',novalidate:true">
+	       	<table>
+	       		<tr>
+	       			<td><label>菜单编码</label></td>
+	       			<td><input id="menuCode" style="width:340px" maxlength="50" name="menuCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入菜单编码'" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>菜单标题</label></td>
+	       			<td><input id="menuTitle" style="width:340px"  maxlength="256" name="menuTitle" class="easyui-textbox" maxlength="256" data-options="required:true,missingMessage:'请输入菜单标题'" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>链接地址</label></td>
+	       			<td>
+	       				<input id="menuUrl" style="width:340px" name="menuUrl" class="easyui-textbox" maxlength="256" />
+	       			</td>
+	       		</tr>
+	       		<tr>
+	       			<td style="vertical-align: text-top;"><label>接口地址</label></td>
+	       			<td>
+	       				<input id="depRestUrl" style="width:340px;height:70px;" name="depRestUrl" class="easyui-textbox" maxlength="1000" data-options="multiline:true" />
+	       			</td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>是否审计</label></td>
+	       			<td><input id="isAudit" style="width:340px" name="isAudit" class="easyui-combobox" codeType="YES_NO" emptyItemEnable="false" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>是否首页导航</label></td>
+	       			<td><input id="parentCode" name="parentCode" type="hidden" />
+	       			<input id="saveType" name="saveType" type="hidden" />
+					<input name=sysVersion type="hidden" />
+	       			<input id="isNavigable" name="isNavigable" style="width:340px" class="easyui-combobox" codeType="YES_NO" emptyItemEnable="false"/></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>排序号</label></td>
+	       			<td><input id="menuOrder" style="width:340px" name="menuOrder" class="easyui-numberbox" data-options="max:999999" /></td>
+	       		</tr>
+	       	</table>
+	      </form> 
+    </div>
+</body>
+<script type="text/javascript">
+var source=[];
+$(document).ready(function(){
+	$("#menuTree").tree({
+		/**
+		 * 点击树节点时，将节点数据显示在界面
+		 */
+		onClick: function(node){
+			LoadNode(node.id);
+        },
+        onDrop:function(target,source,point){
+        	var node = $("#menuTree").tree("getNode",target);
+    		var parentID=node.id;
+    		var sourceID=source.id;
+    		var jsonVar={"menuCode":sourceID,"sysVersion":source.attributes.data.sysVersion,"parentCode":parentID,"menuTitle":source.text,"point":point};
+    		$.ajax({
+    			type:"POST",
+    			dataType: "json",
+    			url:$url('/rest/fmxMenuRest/save.json'),
+    			data:jsonVar,
+    			success:function(data){
+    	        	if(data.code<0){
+    	        		var msg = data.message || '操作失败！';
+    					$.messager.alert("错误信息", msg,'error');
+    	        	}
+    			}
+    		});
+	    }
+	});  
+})
+
+function LoadNode(targetId){
+	$.post($url('/rest/fmxMenuRest/getMenu.json'), {
+		menuCode : targetId
+		}, function(result) {
+			if (result.code == 0) {
+				source = result.data
+				$('#menuCode').textbox('textbox').attr('readonly',true);
+				$('#fm').form('load',source);
+				$('#saveType').val("M");
+			}
+		}, 'json');
+}
+
+function newMenu(){
+	$('#menuCode').textbox('textbox').attr('readonly',false);
+	$('#fm').form('reset');
+	$("#parentCode").val(source.menuCode);
+	$('#saveType').val("I");
+}
+
+function deleteMenu(){
+	var row = $('#menuTree').tree('getSelected');
+	if(row){
+		$.messager.confirm('删除菜单', '确定删除选中菜单？删除菜单之后子菜单也会删除！', function(retn){
+			if (retn){
+				$('#menuControl').maskit();
+				$.post($url('/rest/fmxMenuRest/delete.json'), {
+					menuCode : source.menuCode
+  				}, function(result) {
+  					$('#menuControl').maskit('unmask');
+					if (result.code == 0) {
+			  				$.messager.show({title:'提示信息',msg:'菜单删除成功！',timeout:5000,showType:'slide'});
+			            	$("#menuTree").tree('reload');
+			            	$('#fm').form('reset');
+  					} else {
+  						var msg = result.message || '操作失败！';
+  						$.messager.alert("错误信息", msg,'error');
+  					}
+  				}, 'json');
+			}
+		});
+	}
+}
+
+function saveMenu(){
+	var url = $url('/rest/fmxMenuRest/save.json');
+	$('#fm').form('submit', {
+  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+  		url : url,
+  		onSubmit : function() {
+  			return $(this).form('enableValidation').form('validate');
+  		},
+  		success : function(result) {
+  			var data=JSON.parse(result);
+  			if(data.code>=0){
+  				$.messager.show({title:'提示信息',msg:'菜单保存成功！',timeout:5000,showType:'slide'});
+            	$("#menuTree").tree('reload');
+    			LoadNode(source.menuCode);
+        	}else{
+        		var msg = data.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+        	}
+  		}
+	});
+}
+</script>
+</html>

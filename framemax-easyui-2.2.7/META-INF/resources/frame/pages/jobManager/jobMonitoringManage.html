@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body  class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+		    <ul class="conditionUl" id="conditionUl">
+		    	<li>
+		    		<label>Job代码</label>
+		    		<input name="jobCode" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>运行开始时间</label>
+		    	    <input name="jobStartTime" class="easyui-datebox" dataType="Date" operator="dateBegin"/>
+		    	</li>
+		    	<li>
+		    	    <label>至</label>
+		    	    <input name="jobStartTime" class="easyui-datebox" dataType="Date" operator="dateEnd" />
+		    	</li>
+		    	<li>
+		    		<label>运行结果</label>
+		    		<input name="jobResults" class="easyui-combobox" codetype="RESULT_STATUS"/>
+	    		</li>
+		    </ul>
+		</form>	
+	</div>	
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true" >
+			<div id="controlBtnList" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchJobLog()" default="default">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="failDetail()">失败详情</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbJobLogList" class="easyui-datagrid" data-options="paramForm:'conditionForm',maskit:'controlBtnList',query:'JobLogListQuery',orderBy:'createdTime desc'">
+					<thead>
+						<tr>
+							<th data-options="field:'jobCode',width:100">Job代码</th>
+							<th data-options="field:'jobName',width:120">Job名称</th>
+							<th data-options="field:'jobStartTime',width:120,formatter:'datetime',format:'YYYY-MM-DD HH:mm:ss'">运行开始时间</th>
+							<th data-options="field:'jobTimeConsuming',width:60" formatter="conSuming">耗时(秒)</th>
+							<th data-options="field:'jobWorkingState',width:150">运行状态</th>
+							<th data-options="field:'results',width:120">运行结果</th>
+							<th data-options="field:'jobFailDetail',width:100">失败详情</th>
+							<th data-options="field:'createdTime',width:100,formatter:'datetime',format:'YYYY-MM-DD HH:mm:ss'">记录生成时间</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgJobLog" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+		<input id="jobFailDetail" multiline="true" class="easyui-textbox" style="height:340px;width:540px;" readonly="true"/></td>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgJobLog').dialog('close')">取消</a>
+	</div>
+	<script>
+		$(document).ready(function(){
+		})
+
+		function searchJobLog(){
+			$("#tbJobLogList").datagrid('reload');
+		}
+	
+		function failDetail(){
+			var row = $('#tbJobLogList').datagrid('getSelected');
+			if (row){
+				$('#dlgJobLog').dialog('open').dialog('setTitle','失败详情');
+				$('#jobFailDetail').textbox('setValue',row.jobFailDetail);
+		 	}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+	
+		function conSuming(val,row,index){
+			return Number(val)/1000;
+		}
+	</script>
+</body>
+</html>

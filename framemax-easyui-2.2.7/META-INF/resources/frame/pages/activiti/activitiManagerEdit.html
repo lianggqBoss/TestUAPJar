@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout fitem" data-options="fit:true">
+	<div id="userBtnList" data-options="region:'center',border:false" style="padding:0 10px;">
+		<form id="fmProcess" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+		    <table style="border-spacing: 0px 5px;">
+		    	<tr>
+		    		<td colspan="4">
+		    			<strong>流程信息</strong><hr/>
+		    		</td>
+		    	</tr>
+				<tr>
+					<td>
+						<label>流程编码</label>
+						<input type="hidden" name="processId" />
+						<input type="hidden" name="sysVersion" />
+					</td>
+					<td><input id="processCode" name="processCode" class="easyui-textbox" maxlength="50" style="width:341px;" data-options="required:true,missingMessage:'请输入流程编码'" /></td>
+					<td><label>流程名称</label></td>
+					<td><input name="processName" class="easyui-textbox" maxlength="256" style="width:341px" data-options="required:true,missingMessage:'请输入流程名称'" /></td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<strong>流程审批设置</strong><hr/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<div id="taskControl" style="line-height:35px;margin-bottom:10px;">
+							<a href="#" class="easyui-linkbutton" onclick="newTask()">添加任务</a>
+							<a href="#" class="easyui-linkbutton" onclick="editTask()">编辑任务</a>
+							<a href="#" class="easyui-linkbutton" onclick="deleteTask()">删除任务</a>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<table id="tbTask" class="easyui-datagrid" data-options="checkbox:false,maskit:'taskControl',pagination:false,
+							query:'cn.com.yict.framemax.frame.activiti.model.FmxProcessTaskModel',orderBy:'taskOrder',onBeforeSelect:appendTaskInfo,
+							onClickRow:loadTaskCondition,onLoadSuccess:defaultEvent">
+							<thead>
+								<tr>
+									<th data-options="field:'taskCode',width:200">任务编码</th>
+									<th data-options="field:'taskName',width:200">任务名称</th>
+								</tr>
+							</thead>
+						</table>
+					</td>
+					<td colspan="2">
+						<div id="processTaskCondition">
+							<table>
+								<tr>
+									<td>
+										<div id="taskInfo">
+										 	<table>
+										 		<tr>
+												 	<td><label>审批人</label></td>
+									       			<td colspan="3">
+									       			<input id="candidateUsers" name="candidateUsers" class="easyui-textbox" data-options="multiline:true,height:120,icons: [{iconCls:'icon-add',handler: addApproveCondition}],prompt: '请通过右边添加按钮添加筛选条件'" style="width:341px;"/>
+									       			</td>
+							       				</tr>
+												<tr>
+													<td><label>通知审批人</label></td>
+									       			<td colspan="3"><input name="taskMsgCode" class="easyui-combogrid" codetype="MsgTemplateModel" style="width:341px;"/></td>
+												</tr>
+												<tr>
+													<td><label>通知申请人</label></td>
+									       			<td colspan="3"><input name="taskRequestMsgCode" class="easyui-combogrid" codetype="MsgTemplateModel" style="width:341px;"/></td>
+												</tr>
+										 	</table>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<div id="conditionControl" style="margin-left:10px;">
+											<strong style="margin-left:10px;">跳转节点</strong><hr/>
+											<a href="#" class="easyui-linkbutton" onclick="newCondition()">添加节点</a>
+											<a href="#" class="easyui-linkbutton" onclick="editCondition()">编辑节点</a>
+											<a href="#" class="easyui-linkbutton" onclick="deleteCondition()">删除节点</a>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<div style="margin:0 10px;height:120px;width:500px;">
+									      	<table id="tbCondition" class="easyui-datagrid" data-options="checkbox:false,pagination:false,maskit:'conditionControl'">
+												<thead>
+													<tr>
+														<th data-options="field:'taskCondition',width:'30%'">条件</th>
+														<th data-options="field:'taskConditionName',width:'20%'">条件名称</th>
+														<th data-options="field:'nextTaskName',width:'48%'">任务名称</th>
+													</tr>
+												</thead>
+											</table>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div data-options="region:'south',border:false">
+		<div id="dlg-buttons" class="dialog-button">
+			<a href="#" class="easyui-linkbutton" onclick="saveProcess()" default>保存</a>
+			<a href="#" class="easyui-linkbutton" onclick="javascript:parent.closeDialog()">取消</a>
+		</div>
+	</div>
+	<div id="dlgTask" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-btn-Task'">
+		<form id="fmTask" method="post" class="easyui-form" data-options="novalidate:true">
+	       	<table>
+	       		<tr>
+	       			<td><label>任务编码</label></td>
+	       			<td><input style="width:340px" maxlength="50" id="taskCode" name="taskCode" class="easyui-textbox" data-options="required:true" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>任务名称</label></td>
+	       			<td><input style="width:340px" maxlength="50" name="taskName" class="easyui-textbox" data-options="required:true" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>排序号</label></td>
+	       			<td><input style="width:340px" maxlength="50" name="taskOrder" class="easyui-numberbox" data-options="required:true" /></td>
+	       		</tr>
+       		</table>
+     	</form>
+	</div>
+	<div id="dlg-btn-Task">
+		<a href="#" class="easyui-linkbutton" onclick="saveTask()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgTask').dialog('close')">取消</a>
+	</div>
+	<div id="dlgApproveCondition" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-btn-Approve'">
+		<form id="fmApproveCondition" method="post" class="easyui-form">
+	       	<table>
+	       		<tr>
+	       			<td><label>条件字段</label></td>
+	       			<td><input style="width:340px" maxlength="50" name="fieldName" class="easyui-textbox" /></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>值</label></td>
+	       			<td><input style="width:340px" maxlength="50" name="fieldValue" class="easyui-textbox" /></td>
+	       		</tr>
+       		</table>
+     	</form>
+	</div>
+	<div id="dlg-btn-Approve">
+		<a href="#" class="easyui-linkbutton" onclick="saveApproveCondition()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgApproveCondition').dialog('close')">取消</a>
+	</div>
+	
+	<div id="dlgCondition" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-btn-Condition'">
+		<form id="fmCondition" method="post" class="easyui-form" data-options="novalidate:true">
+	       	<table>
+	       		<tr>
+	       			<td><label>条件名称</label></td>
+	       			<td><input style="width:340px" id="taskConditionName" maxlength="50" name="taskConditionName" class="easyui-combobox" emptyItemEnable="false" data-options="onChange:changeTaskCondition"/></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>条件</label><br/></td>
+	       			<td>
+	       				<input style="width:340px" maxlength="200" id="taskCondition" name="taskCondition" class="easyui-textbox" multiline="true" data-options="required:true,height:50" />
+	       			</td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>跳转任务</label></td>
+	       			<td><input style="width:340px" id="nextTaskCode" name="nextTaskCode" class="easyui-combobox" data-options="required:true,emptyItemEnable:false" /></td>
+	       		</tr>
+       		</table>
+     	</form>
+	</div>
+	<div id="dlg-btn-Condition">
+		<a href="#" class="easyui-linkbutton" onclick="saveCondition()" default>保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgCondition').dialog('close')">取消</a>
+	</div>
+</body>
+<script type="text/javascript">
+	var taskConditionList = [];
+	var delTaskList = [];
+	var delConditionList = [];
+	var taskOperationType;
+	var locStr=String(window.document.location.href);
+	var defaultTaskCondition = [{taskCondition:'${approve == true}',taskConditionName:'同意'},
+	                            {taskCondition:'${approve == false}',taskConditionName:'驳回'}];
+	
+	var defaultTaskConditionList;
+	
+	$(document).ready(function() {
+		defaultTaskConditionList = JSON.parse(JSON.stringify(defaultTaskCondition));
+		var processCode = parent.GetQueryString("processCode", locStr);
+		if(processCode){
+			var url = $url('/rest/fmxProcessRest/getProcessByCode.json');
+			$.post(url,{
+				processCode : processCode
+			},function(result){
+				if (result.code == 0) {
+					$('#fmProcess').form('load',result.data);
+					$('#processCode').textbox('readonly', true);
+				} else {
+					var msg = result.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+				}
+			},'json');
+			
+			var taskUrl = $url('/rest/fmxProcessTaskConditionRest/getTaskCondition.json');
+			$.post(taskUrl,{
+				processCode : processCode
+			},function(result){
+				if (result.code == 0) {
+					if(result.data != null && result.data.length > 0){
+						taskConditionList = result.data;
+					}
+				} else {
+					var msg = result.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+				}
+			},'json');
+			
+			$('#tbTask').datagrid('options').queryFields = [{fieldName:'processCode',fieldValue:processCode}];
+			$('#tbTask').datagrid('reload');
+		}else{
+			initEvent();
+		}
+		$('input[type=radio][name=assignType]').change(function() {
+	        if (this.value=="1") {
+	        	$('#assignUser').combogrid('readonly',false);
+	    		$('#assignRole').combogrid('readonly',true);
+	    		$('#assignRole').combogrid('setValue','');
+	        } else{
+	        	$('#assignUser').combogrid('readonly',true);
+	    		$('#assignRole').combogrid('readonly',false);
+	    		$('#assignUser').combogrid('setValue','');
+	        }
+	    });
+	});
+	
+	function defaultEvent(data){
+		if(data==null || data.total ==0){
+			initEvent();
+		}
+	}
+	
+	function addApproveCondition(){
+		$('#fmApproveCondition').form('clear');
+		$('#dlgApproveCondition').dialog('open').dialog('setTitle','添加审批人筛选条件');
+	}
+	
+	function saveApproveCondition(){
+		var candidateUsersStr = $('#candidateUsers').textbox('getValue');
+		if(candidateUsersStr == ''){
+			candidateUsersStr = '[]';
+		}
+		var candidateUsersObj = JSON.parse(candidateUsersStr);
+		var candidateUsers = $('#fmApproveCondition').form('getData');
+		candidateUsersObj.push(candidateUsers);
+		candidateUsersStr = JSON.stringify(candidateUsersObj);
+		$('#candidateUsers').textbox('setValue', candidateUsersStr);
+		$('#dlgApproveCondition').dialog('close');
+	}
+	
+	function initEvent(){
+		$('#tbTask').datagrid('appendRow',{taskCode:'startEvent',taskName:'开始任务',taskOrder:0});
+	    $('#tbTask').datagrid('appendRow',{taskCode:'endEvent',taskName:'结束任务',taskOrder:99});
+	}
+	
+	function newTask(){
+		$('#taskCode').textbox('readonly',false);
+		taskOperationType = 'Add';
+		$('#fmTask').form('clear');
+		$('#dlgTask').dialog('open').dialog('setTitle','新增审批任务');
+	}
+	
+	function editTask(){
+		var row = $('#tbTask').datagrid('getSelected');
+		if(row){
+			if(row.taskCode == 'startEvent' || row.taskCode == 'endEvent'){
+				return;
+			}
+			taskOperationType = 'Edit';
+			$('#taskCode').textbox('readonly',true);
+			$('#fmTask').form('load',row);
+			$('#dlgTask').dialog('open').dialog('setTitle','修改审批任务');
+		}else{
+			$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+		}
+	}
+	
+	function saveTask(){
+		if(!$('#fmTask').form('enableValidation').form('validate')){
+			return;
+		}
+		var data=$('#fmTask').form('getData');
+		data.processCode = $('#processCode').textbox('getValue');
+		if(taskOperationType == 'Edit'){
+			var row = $('#tbTask').datagrid('getSelected');
+			var index = $('#tbTask').datagrid('getRowIndex',row);
+			$('#tbTask').datagrid('updateRow',{index: index,row:data});
+			$('#tbTask').datagrid('selectRow',index);
+		}else{
+			var rowLength = $('#tbTask').datagrid('getRows').length;
+			var index = rowLength == 0 ? rowLength : rowLength - 1;
+			$('#tbTask').datagrid('insertRow',{index: index,row:data});
+			$('#tbTask').datagrid('selectRow', index);
+			
+			loadTaskCondition(index, data);
+		}
+		$('#dlgTask').dialog('close');
+	}
+	
+	function deleteTask(){
+		var row=$('#tbTask').datagrid('getSelected');
+		if(row){
+			if(row.taskCode == 'startEvent' || row.taskCode == 'endEvent'){
+				return;
+			}
+			$.messager.confirm('删除任务', '确定删除任务[' + row.taskName + ']？', function(retn){
+				if (retn){
+					var index = $('#tbTask').datagrid('getRowIndex',row);
+					$('#tbTask').datagrid('deleteRow',index);
+					if(row.taskId != null){
+						row.modelState = 'Deleted';
+						delTaskList.push(row);
+					}
+				}
+			});
+		}else{
+			$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+		}
+	}
+	
+	function appendTaskInfo(index){
+		var taskInfo = $('#taskInfo').form('getData');
+		var row = $('#tbTask').datagrid('getSelected');
+		if(row){
+			var index = $('#tbTask').datagrid('getRowIndex',row);
+			$('#tbTask').datagrid('updateRow',{index:index,row:taskInfo});
+		}
+		$('#taskInfo').form('clear');
+	}
+	
+	function loadTaskCondition(index, row){
+		$('#tbCondition').datagrid('loadData',[]);
+		if(row.taskCode == 'startEvent' || row.taskCode == 'endEvent'){
+			$('#taskInfo').form('clear');
+			$('#processTaskCondition').form('disable');
+			$('#candidateUsers').textbox('disable');
+			$('.easyui-linkbutton','#conditionControl').linkbutton('disable');
+		}else{
+			$('#processTaskCondition').form('enable');
+			$('#candidateUsers').textbox('enable');
+			$('.easyui-linkbutton','#conditionControl').linkbutton('enable');
+			$('#taskInfo').form('load',row);
+			if(row.candidateGroups != null && row.candidateGroups != ''){
+				$('input[name=assignType][value=0]').prop("checked",true); 
+	        	$('#assignUser').combogrid('readonly',true);
+	    		$('#assignRole').combogrid('readonly',false);
+	    		$('#assignUser').combogrid('setValue','');
+			}else{
+				$('input[name=assignType][value=1]').prop("checked",true);
+				$('#assignUser').combogrid('readonly',false);
+	    		$('#assignRole').combogrid('readonly',true);
+	    		$('#assignRole').combogrid('setValue','');
+			}
+			
+			if(taskConditionList.length > 0){
+				var newTaskConditionList = taskConditionList.filter(function (val, idx ){ return val.taskCode == row.taskCode ? 1 : 0});
+				if(newTaskConditionList.length > 0){
+					for(var i=0; i< newTaskConditionList.length;i++){
+						$('#tbCondition').datagrid('appendRow', newTaskConditionList[i]);
+					}
+				} else {
+					var defaultTaskConditionCopy = JSON.parse(JSON.stringify(defaultTaskCondition));
+					for(var i = 0; i < defaultTaskConditionCopy.length; i++){
+						defaultTaskConditionCopy[i].taskCode = row.taskCode;
+						$('#tbCondition').datagrid('appendRow', defaultTaskConditionCopy[i]);
+					}
+				}
+			}else {
+				var defaultTaskConditionCopy = JSON.parse(JSON.stringify(defaultTaskCondition));
+				for(var i = 0; i < defaultTaskConditionCopy.length; i++){
+					defaultTaskConditionCopy[i].taskCode = row.taskCode;
+					$('#tbCondition').datagrid('appendRow', defaultTaskConditionCopy[i]);
+				}
+			}
+		}
+	}
+	
+	var editConditionIndex = -1;
+	function newCondition(){
+		var rowData = $('#tbCondition').datagrid('getSelected');
+		$('#taskConditionName').combobox({valueField:'taskConditionName',textField:'taskConditionName',data: defaultTaskConditionList});
+		$('#nextTaskCode').combobox({valueField:'taskCode',textField:'taskName',data:$('#tbTask').datagrid('getRows')});
+		$('#fmCondition').form('clear');
+		$('#dlgCondition').dialog('open').dialog('setTitle','新增条件节点');
+		editConditionIndex = -1;
+	}
+	
+	var isEdit;
+	function editCondition(){
+		var rowData = $('#tbCondition').datagrid('getSelected');
+		$('#taskConditionName').combobox({valueField:'taskConditionName',textField:'taskConditionName',data: defaultTaskConditionList});
+		$('#nextTaskCode').combobox({valueField:'taskCode',textField:'taskName',data:$('#tbTask').datagrid('getRows')});
+		isEdit = false;
+		$('#fmCondition').form('load',rowData);
+		$('#dlgCondition').dialog('open').dialog('setTitle','编辑条件节点');
+		editConditionIndex = $('#tbCondition').datagrid('getRowIndex', rowData);
+		setTimeout(function(){
+			isEdit = true;
+		},500);
+	}
+	
+	function deleteCondition(){
+		var row = $('#tbCondition').datagrid('getSelected');
+		if(row){
+			$.messager.confirm('删除任务', '确定删除选中条件节点？', function(retn){
+				if (retn){
+					var index = $('#tbCondition').datagrid('getRowIndex', row);
+					$('#tbCondition').datagrid('deleteRow', index);
+					if(row.conditionId != null){
+						row.modelState = 'Deleted';
+						delConditionList.push(row);
+						
+						if(taskConditionList.length > 0){
+							var newTaskConditionList = taskConditionList.filter(function (val, idx ){ return val.taskCode != row.taskCode ? 1 : 0})
+							taskConditionList = newTaskConditionList;
+						}
+						Array.prototype.push.apply(taskConditionList, $('#tbCondition').datagrid('getRows'));
+					}
+				}
+			});
+		}else{
+			$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+		}
+	}
+	
+	function saveCondition(){
+		if(!$('#fmCondition').form('enableValidation').form('validate')){
+			return;
+		}
+		var row=$('#tbTask').datagrid('getSelected');
+		var data=$('#fmCondition').form('getData');
+		data.nextTaskName = $('#nextTaskCode').combobox('getText');
+		data.taskCode = row.taskCode;
+		data.processCode = row.processCode;
+		if(editConditionIndex >= 0){
+			$('#tbCondition').datagrid('updateRow',{index: editConditionIndex, row:data});
+			$('#tbCondition').datagrid('selectRow',editConditionIndex);
+			
+			$('#dlgCondition').dialog('close');
+			
+			if(taskConditionList.length > 0){
+				var newTaskConditionList = taskConditionList.filter(function (val, idx ){ return val.taskCode != data.taskCode ? 1 : 0})
+				taskConditionList = newTaskConditionList;
+			}
+			Array.prototype.push.apply(taskConditionList, $('#tbCondition').datagrid('getRows'));
+		}else{
+			$('#tbCondition').datagrid('appendRow', data);
+			$('#tbCondition').datagrid('selectRow', $('#tbCondition').datagrid('getRows').length);
+			
+			$('#dlgCondition').dialog('close');
+			
+			if(taskConditionList.length > 0){
+				var newTaskConditionList = taskConditionList.filter(function (val, idx ){ return val.taskCode != data.taskCode ? 1 : 0})
+				taskConditionList = newTaskConditionList;
+			}
+			Array.prototype.push.apply(taskConditionList, $('#tbCondition').datagrid('getRows'));
+		}
+	}
+	
+	function changeTaskCondition(newValue, oldValue){
+		if(isEdit){
+			if(newValue=='同意'){
+				$('#taskCondition').textbox('setValue', '${approve == true}');
+			}else{
+				$('#taskCondition').textbox('setValue', '${approve == false}');
+			}
+		}
+	}
+	
+	function saveProcess(){
+		var taskInfo = $('#taskInfo').form('getData');
+		var row = $('#tbTask').datagrid('getSelected');
+		if(row){
+			var index = $('#tbTask').datagrid('getRowIndex',row);
+			$('#tbTask').datagrid('updateRow',{index:index,row:taskInfo});
+		}
+		var taskList = $('#tbTask').datagrid('getRows');
+		var url = $url('/rest/fmxProcessRest/save.json');
+		$('#fmProcess').form('submit',{
+			contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+	        url : url,
+	        onSubmit : function(params) {
+	    		Array.prototype.push.apply(taskList, delTaskList);
+	        	params.taskList = JSON.stringify(taskList);
+	    		Array.prototype.push.apply(taskConditionList, delConditionList);
+	        	params.taskConditionList = JSON.stringify(taskConditionList);
+        	 	return $(this).form('enableValidation').form('validate');
+	        },
+	        success : function(result) {
+	            var data=JSON.parse(result);
+	            if(data.code>=0){
+	           		parent.closeDialog();
+	           		parent.searchProcess();
+	                $.messager.show({title:'Message',msg:'保存流程信息成功！',timeout:5000,showType:'slide'});
+	            }else{
+	                var msg = data.message || 'Operation failed!';
+	                $.messager.alert("Error Message", msg,'error');
+	            }
+	        }
+	    });
+	}
+</script>
+</html>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd">
+	<bean class="cn.com.yict.framemax.easyui.support.EasyuiPageContextVarsInitializer" />
+	<bean class="cn.com.yict.framemax.easyui.support.ComboSelectCodeOptionsHandler" />
+	<bean id="framemax-easyui.easyuiJsCssModule" abstract="true" class="cn.com.yict.framemax.web.resource.JsCssModule">
+		<!-- 资源模块名称 -->
+		<property name="moduleName" value="easyui" />
+		<!-- 资源排序，越小越靠前 -->
+		<property name="order" value="-1" />
+		<!-- 指定注入页面的匹配模式 -->
+		<property name="pagePattern" value="/*" />		
+		<!-- 当前模块包含的css脚本路径 -->
+		<property name="cssLinks">
+			<set>
+				<value>/easyui/jquery-easyui-1.5/themes/!{theme}/easyui.css?v=1</value>
+				<value>/easyui/jquery-easyui-1.5/themes/color.css</value>
+				<value>/easyui/jquery-easyui-1.5/themes/icon.css</value>
+				<value>/easyui/jquery-easyui-ext/css/easyui.ext.css?v=2</value>
+			</set>
+		</property>
+	</bean>
+	<!-- 非生产环境使用源码版本 -->
+	<bean parent="framemax-easyui.easyuiJsCssModule" >
+		<property name="condition" value="!{!env.equals('prod')}" />
+		<!-- 当前模块包含的javascript脚本路径 -->
+		<property name="jsLinks">
+			<set>
+				<value>/easyui/plugins/json/json2.min.js</value>
+				<value>/easyui/jquery-easyui-1.5/jquery.min.js</value>
+				<value>/easyui/jquery-easyui-1.5/jquery.easyui.all.js?v=3</value>
+				<value>/easyui/jquery-easyui-1.5/locale/easyui-lang-!{locale}.js</value>
+				<value>/easyui/jquery-easyui-ext/jquery.easyui.ext.js?v=1</value>
+				<value>/easyui/jquery-easyui-ext/locale/easyui.ext-lang-!{locale}.js</value>
+			</set>
+		</property>
+	</bean>
+	<!-- 生产环境使用min优化版本 -->
+	<bean parent="framemax-easyui.easyuiJsCssModule" >
+		<property name="condition" value="!{env.equals('prod')}" />
+		<!-- 当前模块包含的javascript脚本路径 -->
+		<property name="jsLinks">
+			<set>
+				<value>/easyui/plugins/json/json2.min.js</value>
+				<value>/easyui/jquery-easyui-1.5/jquery.min.js</value>
+				<value>/easyui/jquery-easyui-1.5/jquery.easyui.min.js</value>
+				<value>/easyui/jquery-easyui-1.5/locale/easyui-lang-!{locale}.js</value>
+				<value>/easyui/jquery-easyui-ext/jquery.easyui.ext.min.js</value>
+				<value>/easyui/jquery-easyui-ext/locale/easyui.ext-lang-!{locale}.js</value>
+			</set>
+		</property>
+	</bean>	
+	
+	<bean id="framemax-easyui.fineuploaderModule" class="cn.com.yict.framemax.web.resource.JsCssModule">
+		<!-- 资源模块名称 -->
+		<property name="moduleName" value="fineuploader" />
+		<!-- fineuploader包含的css脚本路径 -->
+		<property name="cssLinks">
+			<set>
+				<value>/easyui/plugins/fine-uploader/fine-uploader-gallery.min.css</value>
+				<value>/easyui/plugins/fine-uploader/fine-uploader-new.min.css</value>
+			</set>
+		</property>		
+		<!-- fineuploader包含的javascript脚本路径 -->
+		<property name="jsLinks">
+			<set>
+				<value>/easyui/plugins/fine-uploader/jquery.fine-uploader.js</value>
+				<value>/easyui/plugins/fine-uploader/jquery.fine-uploader-ext.js?v=2</value>
+			</set>
+		</property>		
+	</bean>	
+	
+	<bean id="framemax-easyui.fileSaverModule" class="cn.com.yict.framemax.web.resource.JsCssModule">
+		<!-- 资源模块名称 -->
+		<property name="moduleName" value="file-saver" />	
+		<!-- fineuploader包含的javascript脚本路径 -->
+		<property name="jsLinks">
+			<set>
+				<value>/easyui/plugins/file-saver/FileSaver.min.js</value>
+			</set>
+		</property>		
+	</bean>		
+	
+	<bean id="framemax-easyui.jsxlsxModule" class="cn.com.yict.framemax.web.resource.JsCssModule">
+	    <property name="condition" value="!{#{'jsxls'.equals(T(cn.com.yict.framemax.core.config.Config).get('framemax-easyui.dataGridExportType'))}}" />
+		<!-- 资源模块名称 -->
+		<property name="moduleName" value="js-xlsx" />	
+		<!-- fineuploader包含的javascript脚本路径 -->
+		<property name="jsLinks">
+			<set>
+				<value>/easyui/plugins/js-xlsx/xlsx.core.min.js</value>
+				<value>/easyui/plugins/js-xlsx/easyui.datagrid.exporter.js</value>
+			</set>
+		</property>		
+		<property name="depModules" value="file-saver" />
+	</bean>			
+	
+	<!--自动注入/pages/demo1.html -->	
+<!-- 	<bean class="cn.com.yict.framemax.web.resource.JsCssModule">
+		<property name="pagePattern" value="/pages/demo1.html" />
+		<property name="jsLinks">
+			<set>
+				<value>/frame/js/index.js</value>
+			</set>
+		</property>
+		<property name="cssLinks">
+			<set>
+				<value>/css/common.css</value>
+			</set>
+		</property>	
+	</bean> -->
+</beans>

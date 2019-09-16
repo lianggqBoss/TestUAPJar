@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>权限代码管理</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+			<ul class="conditionUl" id="permUl">
+				<li>
+		    		<label>权限代码</label>
+		    		<input id="permCode" name="permCode" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>权限名称</label>
+		    	    <input id="permName" name="permName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    </ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="permControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchPerm()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newPerm()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editPerm()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deletePerm()">删除</a>
+			</div>
+			<div data-options="region:'center',border:false">
+				<table id="tbPerm" class="easyui-datagrid" data-options="maskit:'permControl',paramForm:'conditionForm',
+					query:'cn.com.yict.framemax.frame.model.FmxPermissionCodeModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'permCode',width:'40%'">权限代码</th>
+							<th data-options="field:'permName',width:'55%'">权限名称</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgPerm" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+		<form id="fmPerm" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table>
+				<tr>
+					<td><label>权限代码</label></td>
+					<td><input id="ePermCodeId" name="permCodeId" type="hidden" />
+					<input name=sysVersion type="hidden" />
+					<input id="ePermCode" name="permCode" class="easyui-textbox" maxlength="50" data-options="required:true,missingMessage:'请输入权限代码'" /></td>
+					<td><label>权限名称</label></td>
+					<td><input id="ePermName" name="permName" class="easyui-textbox" maxlength="256" data-options="required:true,missingMessage:'请输入权限名称'" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" onclick="savePerm()">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgPerm').dialog('close')">取消</a>
+	</div>
+	<script type="text/javascript">
+		function searchPerm(){
+			$("#tbPerm").datagrid('reload');
+		}
+		function newPerm(){
+			$("#ePermCode").textbox('textbox').attr('readonly',false);
+			$('#dlgPerm').dialog('open').dialog('setTitle','新增权限代码信息');
+			$("#fmPerm").form('reset');
+		}
+		function editPerm(){
+			var row = $('#tbPerm').datagrid('getSelected');
+			if (row){
+				$("#ePermCode").textbox('textbox').attr('readonly',true);
+				$('#dlgPerm').dialog('open').dialog('setTitle','修改权限代码信息');
+				$("#fmPerm").form('load',row);
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+		function deletePerm(){
+			var row = $('#tbPerm').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$.messager.confirm('删除权限代码', '确定删除选中的权限代码信息？', function(retn){
+					if (retn){
+						$('#permControl').maskit();
+						$.post($url('/rest/fmxPermissionCodeRest/delete.json'), {
+							permCodeId : row.permCodeId
+		  				}, function(result) {
+		  					$('#permControl').maskit('unmask');
+							if (result.code == 0) {
+				  				$.messager.show({title:'提示信息',msg:'权限代码删除成功！',timeout:5000,showType:'slide'});
+								searchPerm();
+		  					} else {
+		  						var msg = result.message || '操作失败！';
+		  						$.messager.alert("错误信息", msg,'error');
+		  					}
+		  				}, 'json'); 
+					}
+				});		
+			}
+		}
+		function savePerm(){
+			var url = $url('/rest/fmxPermissionCodeRest/save.json');
+			$('#fmPerm').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'权限代码保存成功！',timeout:5000,showType:'slide'});
+		            	$("#dlgPerm").dialog("close");
+		                searchPerm();
+		        	}else{
+		        		var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+	</script>
+</body>
+</html>

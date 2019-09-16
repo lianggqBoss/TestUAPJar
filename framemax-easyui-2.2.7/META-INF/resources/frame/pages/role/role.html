@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>角色管理</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false,split:true" title=" ">
+		<form id="conditionForm">
+			<ul class="conditionUl" id="roleUl">
+				<li>
+		    		<label>角色名称</label>
+		    		<input id="roleName" name="roleName" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    	<li>
+		    	    <label>备注</label>
+		    	    <input id="roleDesc" name="roleDesc" class="easyui-textbox" operator="likeAnywhere"/>
+		    	</li>
+		    </ul>
+		</form>	
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="roleControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchRole()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="newRole()">新增</a>
+				<a href="#" class="easyui-linkbutton" onclick="editRole()">修改</a>
+				<a href="#" class="easyui-linkbutton" onclick="deleteRole()">删除</a>
+			</div>
+			<div data-options="region:'center',border:false,split:true">
+				<table id="tbRole" class="easyui-datagrid" data-options="maskit:'roleControl',paramForm:'conditionForm',
+					query:'cn.com.yict.framemax.frame.model.FmxRoleModel'">
+					<thead>
+						<tr>
+							<th data-options="field:'roleCode',width:120">角色代码</th>
+							<th data-options="field:'roleName',width:160">角色名称</th>
+							<th data-options="field:'roleUrl',width:200">默认首页菜单编码</th>
+							<th data-options="field:'roleDesc',width:200">备注</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div id="dlgRole" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-buttons'">
+			<form id="fmRole" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+				<input name=sysVersion type="hidden">
+				<input id="eRoleId" name="roleId" type="hidden">
+				<table>
+					<tr>
+						<td><label>角色代码</label></td>
+						<td><input id="eRoleCode" name="roleCode" class="easyui-textbox" maxlength="100" data-options="required:true,missingMessage:'请输入角色代码'" /></td>
+						<td><label>角色名称</label></td>
+						<td><input id="eRoleName" name="roleName" class="easyui-textbox" maxlength="100" data-options="required:true,missingMessage:'请输入角色名称'" /></td>
+					</tr>
+					<tr>
+						<td><label>菜单编码</label></td>
+						<td><input id="eRoleUrl" name="roleUrl" class="easyui-textbox" maxlength="100" /></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><label>备注</label></td>
+						<td colspan="5"><input id="eRoleDesc" style="width:100%;heigh:50px;" data-options="multiline:true" name="roleDesc" class="easyui-textbox"  maxlength="256"/></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="dlg-buttons">
+			<a href="#" class="easyui-linkbutton" onclick="saveRole()">保存</a>
+			<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgRole').dialog('close')">取消</a>
+		</div>
+	<script>
+		function searchRole(){
+			$("#tbRole").datagrid('reload');
+		}
+	
+		function newRole(){
+			$('#dlgRole').dialog('open').dialog('setTitle','新增角色信息');
+			$("#fmRole").form('reset');
+		}
+	
+		function editRole(){
+			var row = $('#tbRole').datagrid('getSelected');
+			if (row){
+				$('#dlgRole').dialog('open').dialog('setTitle','修改角色信息');
+				$("#fmRole").form('load',row);
+			}else{
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}
+		}
+	
+		function deleteRole(){
+			var row = $('#tbRole').datagrid('getSelected');
+			if(row==null){
+				$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+			}else{
+				$.messager.confirm('删除角色', '确定删除选中的角色？', function(retn){
+					if (retn){
+						$('#roleControl').maskit();
+						$.post($url('/rest/fmxRoleRest/delete.json'), {
+							roleId : row.roleId
+		  				}, function(result) {
+		  					$('#roleControl').maskit('unmask');
+							if (result.code == 0) {
+				  				$.messager.show({title:'提示信息',msg:'角色删除成功！',timeout:5000,showType:'slide'});
+				                searchRole();
+		  					} else {
+		  						var msg = result.message || '操作失败！';
+		  						$.messager.alert("错误信息", msg,'error');
+		  					}
+		  				}, 'json');
+					}
+				});		
+			}
+		}
+	
+		function saveRole(){
+			var url = $url('/rest/fmxRoleRest/save.json');
+			$('#fmRole').form('submit', {
+		  		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+		  		url : url,
+		  		onSubmit : function() {
+		  			return $(this).form('enableValidation').form('validate');
+		  		},
+		  		success : function(result) {
+		  			var data=JSON.parse(result);
+		  			if(data.code>=0){
+		  				$.messager.show({title:'提示信息',msg:'角色保存成功！',timeout:5000,showType:'slide'});
+		                $("#dlgRole").dialog("close");
+		                searchRole();
+		        	}else{
+		        		var msg = data.message || '操作失败！';
+						$.messager.alert("错误信息", msg,'error');
+		        	}
+		  		}
+			});
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout fitem" data-options="fit:true">
+	<div id="userBtnList" data-options="region:'center',border:false" height="auto" style="padding:0 10px;">
+		<form id="fmProcessForm" method="post" class="easyui-form frmContent" data-options="maskit:'dlg-buttons',novalidate:true">
+			<table style="border-spacing: 0px 5px;">
+				<tr>
+		    		<td colspan="8">
+		    			<strong>表单属性</strong><hr/>
+		    		</td>
+		    	</tr>
+				<tr>
+					<td>
+						<label>标题</label>
+						<input type="hidden" name="formId" />
+						<input type="hidden" id="processCode" name="processCode" />
+						<input type="hidden" name="sysVersion" />
+					</td>
+					<td><input name="formTitle" maxlength="50" class="easyui-textbox" data-options="required:true,missingMessage:'请输入表单标题'"/></td>
+					<td><label>布局列数</label></td>
+					<td><input name="formColumnCount" class="easyui-numberbox" data-options="required:true,missingMessage:'请输入布局列数'"/></td>
+					<td><label>宽度</label></td>
+					<td><input name="formWidth" class="easyui-numberbox" data-options="required:true,missingMessage:'请输入表单宽度'"/></td>
+					<td><label>高度</label></td>
+					<td><input name="formHeight" class="easyui-numberbox" data-options="required:true,missingMessage:'请输入表单高度'"/></td>
+				</tr>
+			</table>
+		</form>
+		<table>
+			<tr>
+	    		<td colspan="2"><strong>表单字段及属性列表</strong><hr/></td>
+	    	</tr>
+	    	<tr>
+	    		<td colspan="2">
+	    			<div id="columnControl">
+		    			<a href="#" class="easyui-linkbutton" onclick="newColumn()">添加字段</a>
+		    			<a href="#" class="easyui-linkbutton" onclick="editColumn()">编辑字段</a>
+						<a href="#" class="easyui-linkbutton" onclick="deleteColumn()">删除字段</a>
+					</div>
+	    		</td>
+	    	</tr>
+			<tr>
+				<td>
+					<div style="height:340px;width:580px">
+						<table id="tbColumn" class="easyui-datagrid" data-options="checkbox:false,fitColumns:false,maskit:'columnControl',pagination:false,
+							query:'cn.com.yict.framemax.frame.activiti.model.FmxProcessFormColumnModel',onClickRow:loadAttr">
+							<thead>
+								<tr>
+									<th data-options="field:'columnLabel',width:100">标签</th>
+									<th data-options="field:'columnName',width:100">字段名称</th>
+									<th data-options="field:'columnType',width:80" codetype="FORM_COLUMN_TYPE">字段类型</th>
+									<th data-options="field:'columnIsShow',width:80" codetype="YES_NO">查询显示</th>
+									<th data-options="field:'columnColspan',width:80">合并列数</th>
+									<th data-options="field:'columnOrder',width:80">排序号</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				</td>
+				<td>
+					<div style="margin:0 10px;height:240px;width:345px;">
+						<table id="tbAttr" class="easyui-datagrid" data-options="checkbox:false,fitColumns:false,maskit:'attrControl',pagination:false,onEndEdit:appendColumnAttr">
+							<thead>
+								<tr>
+									<th data-options="field:'attrLabel',width:120">属性名称</th>
+									<th data-options="field:'attrValue',width:160,editor:{type:'textbox'}">属性值</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+					<div style="margin:0 10px;">
+						默认值:<br/>
+							当前登陆人:userAccount;<br/>
+                         	中心账号:centralAccount;<br/>
+                         	工号：userEmpNo;<br/>
+                         	当前登录用户邮箱：userEmail;<br/>
+							当前时间：Date;  <br/>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div data-options="region:'south',border:false">
+		<div id="dlg-buttons" class="dialog-button">
+			<a href="#" class="easyui-linkbutton" onclick="viewForm()" default>预览</a>
+			<a href="#" class="easyui-linkbutton" onclick="saveForm()" default>保存</a>
+			<a href="#" class="easyui-linkbutton" onclick="javascript:parent.closeDialog()">取消</a>
+		</div>
+	</div>
+	<div id="dlgColumn" class="fitem easyui-dialog" data-options="closed:true,buttons:'#dlg-btn-Column'">
+		<form id="fmColumn" method="post" class="easyui-form" data-options="novalidate:true">
+	       	<table>
+	       		<tr>
+	       			<td><label>标签</label></td>
+	       			<td><input maxlength="50" name="columnLabel" class="easyui-textbox" data-options="required:true" /></td>
+	       			<td><label>字段名称</label></td>
+	       			<td><input maxlength="50" id="columnName" name="columnName" class="easyui-textbox" data-options="required:true"/></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>字段类型</label></td>
+	       			<td><input name="columnType" codetype="FORM_COLUMN_TYPE" class="easyui-combobox"  precision="0,0.00" data-options="required:true,emptyItemEnable:false" /></td>
+	       			<td><label>查询显示</label></td>
+	       			<td><input name="columnIsShow" class="easyui-combobox" data-options="emptyItemEnable:false" codeType="YES_NO"/></td>
+	       		</tr>
+	       		<tr>
+	       			<td><label>合并列数</label></td>
+	       			<td><input name="columnColspan" class="easyui-numberbox"/></td>
+	       			<td><label>排序号</label></td>
+	       			<td><input name="columnOrder" class="easyui-numberbox" data-options="required:true" /></td>
+	       		</tr>
+       		</table>
+     	</form>
+	</div>
+	<div id="dlg-btn-Column">
+		<a href="#" class="easyui-linkbutton" onclick="saveColumn()" default>保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dlgColumn').dialog('close')">取消</a>
+	</div>
+</body>
+<script type="text/javascript">
+var attrList = [];
+var delColumnList = [];
+var columnOperationType;
+var attrOperationType;
+var locStr=String(window.document.location.href);
+var columnAttrList = [{attrName : 'required', attrLabel : '是否必填'},
+                      {attrName : 'validType', attrLabel : '验证类型'},
+                      {attrName : 'missingMessage', attrLabel : '空内容提示'},
+                      {attrName : 'width', attrLabel : '宽度'},
+                      {attrName : 'height', attrLabel : '高度'},
+                      {attrName : 'prompt', attrLabel : '提示'},
+                      {attrName : 'value', attrLabel : '默认值'},
+                      {attrName : 'readonly', attrLabel : '是否只读'}];
+                      
+var columnAttrForNumber = [{attrName : 'min', attrLabel : '最小值'},
+                           {attrName : 'precision', attrLabel : '数值精度'},
+                           {attrName : 'max', attrLabel : '最大值'},
+                           {attrName : 'prefix', attrLabel : '前缀字符'},
+                           {attrName : 'suffix', attrLabel : '后缀字符'}];
+
+var columnAttrForCombo = [{attrName : 'multiple', attrLabel : '是否多选'},
+                         {attrName : 'panelWidth', attrLabel : '下拉面板宽度'},
+                         {attrName : 'panelHeight', attrLabel : '下拉面板高度'},
+                         {attrName : 'codetype', attrLabel : '数据源'},
+                         {attrName : 'emptyItemEnable', attrLabel : '是否显示空行'}];
+
+var columnAttrForText = [{attrName : 'maxlength', attrLabel : '最大长度'},
+                         {attrName : 'prompt', attrLabel : '数值精度'},
+                         {attrName : 'multiline', attrLabel : '是否多行'}];
+                         
+var processCode;
+$(document).ready(function() {
+	processCode = parent.GetQueryString("processCode", locStr);
+	if(processCode){
+		$.post($url('/rest/fmxProcessFormRest/getFormByProcessCode.json'),{
+			processCode : processCode
+		},function(result){
+			if (result.code == 0) {
+				if(result.data != null){
+					$('#fmProcessForm').form('load',result.data);
+					$('#tbColumn').datagrid('options').queryFields = [{fieldName : 'formId', fieldValue: result.data.formId}];
+					$('#tbColumn').datagrid('reload');
+				}else{
+					$('#processCode').val(processCode);
+				}
+			} else {
+				var msg = result.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+			}
+		},'json');
+		
+		$.post($url('/rest/fmxProcessFormAttrRest/getAttrByProcessCode.json'),{
+			processCode : processCode
+		},function(result){
+			if (result.code == 0) {
+				if(result.data != null){
+					attrList = result.data;
+				}
+			} else {
+				var msg = result.message || '操作失败！';
+				$.messager.alert("错误信息", msg,'error');
+			}
+		},'json');
+	}
+    $('input[type=radio][name=assignType]').change(function() {
+        if (this.value=="1") {
+        	$('#assignUser').combogrid('readonly',false);
+    		$('#assignRole').combogrid('readonly',true);
+    		$('#assignRole').combogrid('setValue','');
+        } else{
+        	$('#assignUser').combogrid('readonly',true);
+    		$('#assignRole').combogrid('readonly',false);
+    		$('#assignUser').combogrid('setValue','');
+        }
+    });
+});
+
+function newColumn(){
+	columnOperationType = 'Add';
+	$('#fmColumn').form('clear');
+	$('#columnName').textbox('readonly', false);
+	$('#dlgColumn').dialog('open').dialog('setTitle','新增表单字段');
+}
+
+function editColumn(){
+	var row =$('#tbColumn').datagrid('getSelected');
+	if(row){
+		columnOperationType = 'Edit';
+		$('#fmColumn').form('load',row);
+		$('#dlgColumn').dialog('open').dialog('setTitle','编辑表单字段');
+		$('#columnName').textbox('readonly', true);
+	}else{
+		$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+	}
+}
+
+function saveColumn(){
+	if(!$('#fmColumn').form('enableValidation').form('validate')){
+		return;
+	}
+	var data=$('#fmColumn').form('getData');
+	data.processCode = processCode;
+	
+	if(columnOperationType == 'Edit'){
+		var row = $('#tbColumn').datagrid('getSelected');
+		var index = $('#tbColumn').datagrid('getRowIndex',row);
+		$('#tbColumn').datagrid('updateRow',{index: index,row:data});
+		$('#tbColumn').datagrid('selectRow',index);
+	}else{
+		$('#tbColumn').datagrid('appendRow',data);
+		var index = $('#tbColumn').datagrid('getRows').length - 1;
+		$('#tbColumn').datagrid('selectRow', index);
+		
+		loadAttr(index, data);
+	}
+	$('#dlgColumn').dialog('close');
+}
+
+function deleteColumn(){
+	var row=$('#tbColumn').datagrid('getSelected');
+	if(row){
+		$.messager.confirm('删除字段', '确定删除字段[' + row.columnName + ']？', function(retn){
+			if (retn){
+				var index = $('#tbColumn').datagrid('getRowIndex',row);
+				$('#tbColumn').datagrid('deleteRow',index);
+				if(row.columnId != null){
+					row.modelState = 'Deleted';
+					delColumnList.push(row);
+				}
+			}
+		});
+	}else{
+		$.messager.alert("提示信息", "请选择需要操作的记录！",'warning');
+	}
+}
+
+function appendColumnAttr(index,row,changes){
+	var columnRow = $('#tbColumn').datagrid('getSelected');
+	if(columnRow){
+		if(attrList.length > 0){
+			var newAttrList = attrList.filter(function (val, idx ){ return (val.columnName != columnRow.columnName) ? 1 : 0})
+			attrList = newAttrList;
+		}
+		Array.prototype.push.apply(attrList, $('#tbAttr').datagrid('getRows'));
+	}
+}
+
+
+function attrEndEidt(){
+	var attrRow = $('#tbAttr').datagrid('getSelected');
+	if(attrRow){
+		var attrIndex = $('#tbAttr').datagrid('getRowIndex', attrRow);
+		$('#tbAttr').datagrid('endEdit', attrIndex);
+	}
+}
+
+function loadAttr(index, row){
+	attrEndEidt();
+	var attrRow = $('#tbAttr').datagrid('getSelected');
+	if(attrRow){
+		var attrIndex = $('#tbAttr').datagrid('getRowIndex', attrRow);
+		$('#tbAttr').datagrid('endEdit', attrIndex);
+	}
+	var rows = $('#tbAttr').datagrid('getRows');
+	for(var index = rows.length - 1; index >=0 ; index--){
+		$('#tbAttr').datagrid('deleteRow',index);
+	}
+	if(attrList.length > 0){
+		var newAttrList = attrList.filter(function (val, idx ){ return val.columnName == row.columnName ? 1 : 0});
+		var colAttrList = JSON.parse(JSON.stringify(columnAttrList));
+		if('easyui-textbox' == row.columnType){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForText)));
+		}else if('easyui-numberbox' == row.columnType){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForNumber)));
+		}else if(row.columnType.indexOf('combo') > 0){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForCombo)));
+		}
+		
+		for(var i = 0; i < colAttrList.length; i++){
+			var key = colAttrList[i].attrName;
+			var isAttrList = newAttrList.filter(function (val, idx ){ return val.attrName == key ? 1 : 0});
+			if(isAttrList.length == 0){
+				newAttrList.push(colAttrList[i]);
+			}
+		}
+		for(var i=0; i< newAttrList.length;i++){
+			newAttrList[i].columnName = row.columnName;
+			$('#tbAttr').datagrid('appendRow', newAttrList[i]);
+		}
+	}else{
+		var colAttrList = JSON.parse(JSON.stringify(columnAttrList));
+		if('easyui-textbox' == row.columnType){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForText)));
+		}else if('easyui-numberbox' == row.columnType){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForNumber)));
+		}else if(row.columnType.indexOf('combo') > 0){
+			Array.prototype.push.apply(colAttrList, JSON.parse(JSON.stringify(columnAttrForCombo)));
+		}
+		for(var i=0; i< colAttrList.length;i++){
+			colAttrList[i].columnName = row.columnName;
+			$('#tbAttr').datagrid('appendRow', colAttrList[i]);
+		}
+	}
+}
+
+function saveForm(){
+	attrEndEidt();
+	var url = $url('/rest/fmxProcessFormRest/save.json');
+	var columnList = $('#tbColumn').datagrid('getRows');
+	$('#fmProcessForm').form('submit',{
+		contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+        url : url,
+        onSubmit : function(params) {
+        	Array.prototype.push.apply(columnList, delColumnList);
+        	params.columnList = JSON.stringify(columnList);
+        	Array.prototype.push.apply(attrList);
+        	params.attrList = JSON.stringify(attrList);
+    	 	return $(this).form('enableValidation').form('validate');
+        },
+        success : function(result) {
+            var data=JSON.parse(result);
+            if(data.code>=0){
+           		parent.closeDialog();
+                $.messager.show({title:'Message',msg:'保存表单信息成功！',timeout:5000,showType:'slide'});
+            }else{
+                var msg = data.message || 'Operation failed!';
+                $.messager.alert("Error Message", msg,'error');
+            }
+        }
+    });
+}
+
+function viewForm(){
+	attrEndEidt();
+	var formColumn = $('#tbColumn').datagrid('getRows');
+	
+	var formInfo = $('#fmProcessForm').form('getData');
+	showFormDialog(formInfo, formColumn, attrList);
+}
+var $dlg;
+function showFormDialog(formInfo, formColumn, formAttrList){
+	if($dlg != null)
+		$dlg.detach();
+	$dlg = $("<div style='display:none'><form id='fmForm' class='easyui-form' method='post' enctype='multipart/form-data' data-options='novalidate:true'><table id='tbForm' style='border-collapse:separate;border-spacing:0px 10px;vertical-align:middle;margin:0 15px;'></table></form></div>").appendTo("body");
+	$dlg.dialog({
+		closed : true,
+		title: formInfo.formTitle,
+		width: formInfo.formWidth,
+		height: formInfo.formHeight
+	});
+
+	var $tr;
+	var columnCount = 0;
+	for(var index = 0; index < formColumn.length; index++){
+		var column = formColumn[index];
+		var $input = $('<input />');
+		$input.attr('class',column.columnType);
+		$input.attr('name',column.columnName);
+		$input.attr('label',column.columnLabel);
+		
+		var newAttrList = formAttrList.filter(function (val, idx ){ return val.columnName == column.columnName ? 1 : 0});
+		var attrOptions = '';
+		for(var i = 0; i < newAttrList.length; i++){
+			var attr = newAttrList[i];
+			if(attr.attrValue != null && attr.attrValue != ''){
+				if('width' == attr.attrName || 'height' == attr.attrName){
+					attrOptions += (attrOptions == '') ? (attr.attrName + ':' + attr.attrValue) : (',' + attr.attrName + ':' + attr.attrValue);
+				}else if('value' == attr.attrName){
+					if('Date' == attr.attrValue){
+						var currentDate = moment().format('YYYY-MM-DD');
+						$input.attr(attr.attrName, currentDate);
+					}else if(top.fmx.pageContext.currentUser[attr.attrValue] != null){
+						$input.attr(attr.attrName, top.fmx.pageContext.currentUser[attr.attrValue]);
+					}else if(top.fmx.pageContext[attr.attrValue] != null){
+						$input.attr(attr.attrName, top.fmx.pageContext[attr.attrValue]);
+					}else{
+						$input.attr(attr.attrName, attr.attrValue);
+					}
+				}else{
+					$input.attr(attr.attrName, attr.attrValue);
+				}
+			}
+		}
+		if(attrOptions != ''){
+			$input.attr('data-options', attrOptions);
+		}
+		
+		var columnColspan = (column.columnColspan == null || column.columnColspan == '') ? 1 : Number(column.columnColspan);
+		if(index == 0 || columnCount % Number(formInfo.formColumnCount) == 0){
+			$tr = $('<tr></tr>'); 
+			$tr.appendTo($('#tbForm'));
+			columnCount = 0;
+		}
+		columnCount += columnColspan;
+		var $td = $('<td></td>');
+		$td.attr('style', 'text-align:left');
+		if(columnColspan > 0){
+			$td.attr('colspan', columnColspan);
+		}
+		$input.appendTo($td);
+		$td.appendTo($tr);
+	}
+	
+	$.parser.parse($dlg);
+	
+	$dlg.dialog("open");
+}
+</script>
+</html>

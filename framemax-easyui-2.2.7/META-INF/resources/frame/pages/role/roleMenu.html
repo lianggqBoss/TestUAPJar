@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>角色菜单授权</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<script type="text/javascript" src="../../../pageContext.js"></script>
+</head>
+<body class="innerBody easyui-layout" data-options="fit:true">
+	<div height="auto" data-options="region:'north',border:false" title=" ">
+		<ul class="conditionUl" id="conditionForm">
+			<li>
+	    		<label>角色名称</label>
+	    		<input name="roleId" class="easyui-combogrid" codetype="RoleModel" />
+	    	</li>
+	    	<li>
+	    		<label>菜单名称</label>
+	    		<input name="menuCode" class="easyui-combogrid" codetype="MenuModel" />
+	    	</li>	    	
+	    </ul>
+	</div>
+	<div data-options="region:'center',border:false">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="roleMenuControl" data-options="region:'north',border:false" height="auto">
+				<a href="#" class="easyui-linkbutton" onclick="searchRole()">查询</a>
+				<a href="#" class="easyui-linkbutton" onclick="save()">保存</a>
+			</div>
+			<div data-options="region:'center',border:false,split:true">					
+				<div class="easyui-layout" style="width:100%;height:100%;">		
+				    <div data-options="region:'west',border:false" id="Main"style="width:50%;padding-right:10px;">
+				     	<table id="tbRole" class="easyui-datagrid" data-options="maskit:'roleMenuControl',paramForm:'conditionForm',
+				     		query:'RoleInfoQuery'">
+							<thead>
+								<tr>
+									<th data-options="field:'roleName',width:'40%'">角色名称</th>
+									<th data-options="field:'roleDesc',width:'55%'">备注</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
+				    <div data-options="region:'center'" id="menuTreeList">
+						<ul id="menuTree" class="easyui-tree" data-options="checkbox:true,cascadeCheck:false,
+							query:'cn.com.yict.framemax.frame.model.FmxMenuModel',idField:'menuCode',textField:'menuTitle',parentField:'parentCode',orderBy:'menuOrder'"></ul> 
+				    </div> 
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var isClick=true;
+		$(document).ready(function(){
+			$.extend(true,$("#tbRole").datagrid("options"),{
+				onSelect:function(index, row){
+					var targetId = row["roleId"];
+				    var roots = $('#menuTree').tree('getRoots');
+				    for(var i=0;i<roots.length;i++) {  
+			            var node = $('#menuTree').tree('find',roots[i].id);
+			            checkTree(node,false);
+			        }
+					$.post($url('/rest/fmxRoleMenuRest/getRoleMenuList.json'), {
+						roleId : targetId
+						}, function(result) {
+							if (result.code == 0) {
+								isClick=false;
+								for(var rmenu=0;rmenu<result.data.length;rmenu++){
+						            var node = $('#menuTree').tree('find', result.data[rmenu]["menuCode"]);//查找节点  
+						            $('#menuTree').tree('check', node.target);
+								}
+								isClick=true;
+							} else {
+								var msg = result.message || '操作失败！';
+								$.messager.alert("错误信息", msg,'error');
+							}
+						}, 'json');
+		        },
+		        onLoadSuccess : function(data) {
+		        	$(this).datagrid('checkRow',0);
+		        }
+			});
+			$.extend(true,$("#menuTree").tree("options"),{
+				onCheck:function(node,checked){
+					if(isClick){
+						checkNodes(node);
+					}
+				},
+				onClick:function(node){
+					isClick=false;
+					if(node.checked){
+						$('#menuTree').tree('uncheck', node.target);
+					}else{
+						$('#menuTree').tree('check', node.target);
+					}
+					checkNodes(node);
+				}
+			});
+		})
+		
+		function checkNodes(node){
+			isClick=false;
+			checkParent(node,node.checked);
+			checkTree(node,node.checked);
+			isClick=true;
+		}
+		
+		function checkParent(node,checked){
+			var nodeParent=$('#menuTree').tree('getParent',node.target);
+			if(nodeParent!=null){
+				checkParent(nodeParent,checked);
+				if(checked){
+					$('#menuTree').tree('check', nodeParent.target);
+				}
+			}
+		}
+	
+		function searchRole(){
+			$("#tbRole").datagrid('reload');
+		}
+	
+		function save(){
+			var data=[];
+			var row = $('#tbRole').datagrid('getSelected');
+			var Id = row["roleId"];
+			var checkeds = $('#menuTree').tree('getChecked', 'checked');
+		    for (var i = 0; i < checkeds.length; i++) {
+		    	var child=[{"roleId":Id,"menuCode":checkeds[i].id}];
+		    	data.push(child[0]);
+		    }
+		    if(checkeds.length==0){
+		    	var child=[{"roleId":Id,"menuCode":null}];
+		    	data.push(child[0]);
+		    }
+			var url=$url('/rest/fmxRoleMenuRest/save.json');
+			$postJSON(url,data,function(data){
+				if(data.code>=0){
+					$.messager.show({title:'提示信息',msg:'角色菜单保存成功',timeout:5000,showType:'slide'});
+				}else{
+					var msg = data.message || '操作失败！';
+					$.messager.alert("错误信息", msg,'error');
+		    	}
+			});
+		}	
+		function checkTree(node,checkstate){
+			if(node.children!=null){
+				var childNodes = node.children;
+				for (var child=0; child<childNodes.length;child++) {
+					var checknode = $('#menuTree').tree('find', childNodes[child].id);
+					checkTree(checknode,checkstate);
+				}
+			}
+			if(checkstate){
+				$('#menuTree').tree('check', node.target);
+			}else{
+				$('#menuTree').tree('uncheck', node.target);
+			}
+		}
+	</script>
+</body>
+</html>
